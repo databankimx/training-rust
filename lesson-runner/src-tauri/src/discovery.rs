@@ -156,6 +156,12 @@ fn steps_in(practice: &Path) -> Vec<Step> {
         .flatten()
         .map(|entry| entry.path())
         .filter(|path| path.is_dir() && (path.join("lesson.md").is_file() || path.join("Cargo.toml").is_file()))
+        .filter(|path| {
+            // Sub-chapter folders (sNN-...) have overviews too, but they are listed as sections, not steps.
+            // The homework folder has an overview as well, and is listed under Homework.
+            let name = path.file_name().unwrap_or_default().to_string_lossy().into_owned();
+            section_number(&name).is_none() && name != "homework"
+        })
         .map(|path| {
             let name = path.file_name().unwrap_or_default().to_string_lossy().into_owned();
             Step {

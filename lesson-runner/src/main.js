@@ -32,6 +32,17 @@ const copyOutputButton = document.querySelector("#copy-output");
 const copySourceButton = document.querySelector("#copy-source");
 const popoutButton = document.querySelector("#popout");
 
+// Source files: a step can have several .rs files. The drop-down above the editor picks one, and main.rs is the default.
+const fileSelect = document.createElement("select");
+fileSelect.id = "file-select";
+fileSelect.title = "Choose a source file in this step";
+fileSelect.style.margin = "4px 8px";
+sourceView.before(fileSelect);
+let currentFile = null;
+let originalMain = "";
+let mainDraft = null;
+let fileCount = 0;
+
 let chapters = [];
 let selectedChapter = null;
 let selectedStep = null;
@@ -262,25 +273,59 @@ function syncScroll() {
 }
 
 async function loadSource(step) {
-  try {
-    if (!step.has_code) {
-      editor.value = "// This step has no code to run. See the Lesson tab.";
-      original = editor.value;
-      editor.readOnly = true;
-      renderEditor();
-      return;
-    }
-    editor.readOnly = false;
-    original = await invoke("read_source", { path: step.path });
-    editor.value = original;
-    editor.scrollTop = 0;
+  mainDraft = null;
+  originalMain = "";
+  currentFile = null;
+  if (!step.has_code) {
+    fileSelect.replaceChildren();
+    fileCount = 0;
+    editor.value = "// This step has no code to run. See the Lesson tab.";
+    original = editor.value;
+    editor.readOnly = true;
     renderEditor();
+    return;
+  }
+  try {
+    const files = await invoke("list_source_files", { path: step.path });
+    fileCount = files.length;
+    fileSelect.replaceChildren(
+      ...files.map((file) => {
+        const option = document.createElement("option");
+        option.value = file;
+        option.textContent = file;
+        return option;
+      }),
+    );
+    await loadSourceFile(step, "main.rs");
   } catch (error) {
     original = "";
     editor.value = `${error}`;
     renderEditor();
   }
 }
+
+/** Shows one source file. Only main.rs can be edited, because only main.rs is sent to the runner. */
+async function loadSourceFile(step, file) {
+  if (currentFile === "main.rs" && !editor.readOnly) mainDraft = editor.value;
+  currentFile = file;
+  fileSelect.value = file;
+  const text = await invoke("read_source", { path: step.path, file });
+  if (file === "main.rs") {
+    originalMain = text;
+    editor.value = mainDraft ?? text;
+    editor.readOnly = false;
+  } else {
+    editor.value = text;
+    editor.readOnly = true;
+  }
+  original = text;
+  editor.scrollTop = 0;
+  renderEditor();
+}
+
+fileSelect.addEventListener("change", () => {
+  if (selectedStep) loadSourceFile(selectedStep, fileSelect.value);
+});
 
 function resetEditor() {
   editor.value = original;
@@ -345,8 +390,9 @@ async function run() {
   running = true;
   output.replaceChildren();
   updateButtons();
-  // Send the edited code only when it differs from the file on disk.
-  const edited = editor.value !== original ? editor.value : null;
+  // Send main.rs only when its text differs from the file on disk. Other files are read-only.
+  const mainText = currentFile === "main.rs" ? editor.value : mainDraft ?? originalMain;
+  const edited = mainText !== originalMain ? mainText : null;
   try {
     await invoke("run_step", { path: selectedStep.path, source: edited });
   } catch (error) {
@@ -412,6 +458,7 @@ function setTab(name) {
   lessonEl.classList.toggle("hidden", name !== "lesson");
   document.querySelector("#reset").classList.toggle("hidden", !showSource);
   modifiedEl.classList.toggle("hidden", !showSource || editor.value === original);
+  fileSelect.classList.toggle("hidden", !showSource || fileCount < 2);
   if (name === "lesson") applyLessonScroll();
 }
 

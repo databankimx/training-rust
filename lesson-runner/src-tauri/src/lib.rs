@@ -42,11 +42,40 @@ fn list_chapters() -> Vec<discovery::Chapter> {
     discovery::discover()
 }
 
-/// The text of a step's `src/main.rs`, for the Source tab.
+/// The `.rs` files in a step's `src` folder, as paths relative to `src` with `/` separators. `main.rs` comes first.
 #[tauri::command]
-fn read_source(path: String) -> Result<String, String> {
-    let main = std::path::Path::new(&path).join("src").join("main.rs");
-    std::fs::read_to_string(&main).map_err(|e| format!("Could not read {}: {e}", main.display()))
+fn list_source_files(path: String) -> Vec<String> {
+    let src = std::path::Path::new(&path).join("src");
+    let mut files = Vec::new();
+    collect_rs_files(&src, &src, &mut files);
+    files.sort_by(|a, b| (a != "main.rs").cmp(&(b != "main.rs")).then_with(|| a.cmp(b)));
+    files
+}
+
+fn collect_rs_files(root: &std::path::Path, dir: &std::path::Path, out: &mut Vec<String>) {
+    let Ok(entries) = std::fs::read_dir(dir) else {
+        return;
+    };
+    for entry in entries.flatten() {
+        let p = entry.path();
+        if p.is_dir() {
+            collect_rs_files(root, &p, out);
+        } else if p.extension().is_some_and(|e| e == "rs") {
+            if let Ok(rel) = p.strip_prefix(root) {
+                out.push(rel.to_string_lossy().replace('\\', "/"));
+            }
+        }
+    }
+}
+
+/// The text of a `.rs` file in a step's `src` folder, for the Source tab.
+#[tauri::command]
+fn read_source(path: String, file: String) -> Result<String, String> {
+    if file.contains("..") || file.starts_with('/') || file.starts_with('\\') || !file.ends_with(".rs") {
+        return Err(format!("Not a source file: {file}"));
+    }
+    let full = std::path::Path::new(&path).join("src").join(&file);
+    std::fs::read_to_string(&full).map_err(|e| format!("Could not read {}: {e}", full.display()))
 }
 
 /// The text of a step's `lesson.md`, or an empty string if it has none.
@@ -182,6 +211,7 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             list_chapters,
             read_source,
+            list_source_files,
             read_lesson,
             read_step_file,
             set_lesson,
