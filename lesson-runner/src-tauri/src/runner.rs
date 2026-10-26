@@ -33,10 +33,15 @@ pub fn start(
     state: State<'_, RunState>,
     dir: String,
     source: Option<String>,
+    backtrace: bool,
 ) -> Result<(), String> {
     stop(&state);
 
     let mut command = Command::new("cargo");
+    if backtrace {
+        // Set for this run only, so panics show a backtrace without changing the user's environment.
+        command.env("RUST_BACKTRACE", "1");
+    }
     command
         .arg("run")
         .stdin(Stdio::piped())

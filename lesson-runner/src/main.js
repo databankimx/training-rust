@@ -43,6 +43,26 @@ let originalMain = "";
 let mainDraft = null;
 let fileCount = 0;
 
+// The drop-down is shown only on the Source tab, for steps with more than one source file.
+function updateFileSelect() {
+  fileSelect.classList.toggle("hidden", activeTab !== "source" || spoilerHidden || fileCount < 2);
+}
+
+// Backtrace toggle: when it is on, each run sets RUST_BACKTRACE, so a panic shows where it came from.
+const BACKTRACE_KEY = "rust-training-backtrace";
+const backtraceLabel = document.createElement("label");
+backtraceLabel.title = "Show a backtrace when a program panics";
+backtraceLabel.style.fontSize = "12px";
+backtraceLabel.style.marginRight = "8px";
+const backtraceToggle = document.createElement("input");
+backtraceToggle.type = "checkbox";
+backtraceToggle.checked = localStorage.getItem(BACKTRACE_KEY) === "1";
+backtraceToggle.addEventListener("change", () => {
+  localStorage.setItem(BACKTRACE_KEY, backtraceToggle.checked ? "1" : "0");
+});
+backtraceLabel.append(backtraceToggle, " Backtrace");
+clearButton.before(backtraceLabel);
+
 let chapters = [];
 let selectedChapter = null;
 let selectedStep = null;
@@ -281,6 +301,7 @@ async function loadSource(step) {
   if (!step.has_code) {
     fileSelect.replaceChildren();
     fileCount = 0;
+    updateFileSelect();
     editor.value = "// This step has no code to run. See the Lesson tab.";
     original = editor.value;
     editor.readOnly = true;
@@ -290,6 +311,7 @@ async function loadSource(step) {
   try {
     const files = await invoke("list_source_files", { path: step.path });
     fileCount = files.length;
+    updateFileSelect();
     fileSelect.replaceChildren(
       ...files.map((file) => {
         const option = document.createElement("option");
@@ -396,7 +418,7 @@ async function run() {
   const mainText = currentFile === "main.rs" ? editor.value : mainDraft ?? originalMain;
   const edited = mainText !== originalMain ? mainText : null;
   try {
-    await invoke("run_step", { path: selectedStep.path, source: edited });
+    await invoke("run_step", { path: selectedStep.path, source: edited, backtrace: backtraceToggle.checked });
   } catch (error) {
     appendOutput(`${error}\n`, "stderr");
     running = false;
@@ -460,7 +482,7 @@ function setTab(name) {
   lessonEl.classList.toggle("hidden", name !== "lesson");
   document.querySelector("#reset").classList.toggle("hidden", !showSource);
   modifiedEl.classList.toggle("hidden", !showSource || editor.value === original);
-  fileSelect.classList.toggle("hidden", !showSource || fileCount < 2);
+  updateFileSelect();
   if (name === "lesson") applyLessonScroll();
 }
 

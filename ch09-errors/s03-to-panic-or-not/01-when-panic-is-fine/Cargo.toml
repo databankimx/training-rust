@@ -1,0 +1,6 @@
+[package]
+name = "when_panic_is_fine"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
