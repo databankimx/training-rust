@@ -235,6 +235,8 @@ listen("goto", (event) => {
 });
 
 async function selectStep(chapter, step) {
+  // A program that is still running belongs to the step being left, so stop it before showing the new one.
+  if (running) await stop();
   selectedChapter = chapter;
   homeworkMode = chapter.homework.includes(step);
   selectedSection = chapter.sections.find((section) => section.steps.includes(step)) || null;
