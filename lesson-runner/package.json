@@ -1,0 +1,16 @@
+{
+  "name": "lesson-runner",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "tauri": "tauri"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2"
+  },
+  "dependencies": {
+    "@viz-js/viz": "^3.31.0",
+    "marked": "^18.1.1"
+  }
+}
