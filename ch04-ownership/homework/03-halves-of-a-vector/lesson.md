@@ -46,4 +46,4 @@ Check the result for a vector with an odd length too. Which half is larger in th
 
 ---
 
-*This exercise is not from the book. It practises `split_at_mut` and mutable references from Chapter 4.*
+*This exercise is not from the book. It practices `split_at_mut` and mutable references from Chapter 4.*

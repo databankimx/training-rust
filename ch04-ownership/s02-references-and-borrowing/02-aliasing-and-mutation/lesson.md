@@ -76,11 +76,11 @@ v.push(4);
 println!("Third element is {}", *num);
 ```
 
-This program is rejected by the compiler, as the error further down shows. It's here to explain the undefined behaviour the rule prevents.
+This program is rejected by the compiler, as the error further down shows. It's here to explain the undefined behavior the rule prevents.
 
 Here `num` points to the third element of the first array, and `v.push(4)` frees that array. `num` is left
 pointing at memory that has been released. Reading `*num` on the last line is reading freed memory, which is
-undefined behaviour. The dashed arrow in the diagram above is exactly this reference.
+undefined behavior. The dashed arrow in the diagram above is exactly this reference.
 
 The problem isn't that `v` is aliased, or that it's mutated. It's that `num` is aliasing `v` while `v` is being
 mutated. The same data is being accessed through two paths at the same time, and one of them changes it.

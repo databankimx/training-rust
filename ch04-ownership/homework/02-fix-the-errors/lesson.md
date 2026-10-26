@@ -49,4 +49,4 @@ scores. Check that your version prints in the order you expect.
 
 ---
 
-*This exercise is not from the book. It practises the fixes from Chapter 4's fixing ownership errors step.*
+*This exercise is not from the book. It practices the fixes from Chapter 4's fixing ownership errors step.*

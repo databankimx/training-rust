@@ -12,7 +12,7 @@ The chapter is split into sub-chapters, each covering one part of the story:
 * [4.4 Slices](#goto/s04-slices): a reference to part of a collection, and why it's useful.
 * [4.5 Ownership recap](#goto/s05-ownership-recap): reviewing the chapter, and how it connects.
 
-Take your time with this chapter. Each sub-chapter builds on the one before, and the homework at the end practises them together.
+Take your time with this chapter. Each sub-chapter builds on the one before, and the homework at the end practices them together.
 
 ---
 

@@ -4,7 +4,7 @@ This chapter covers the building blocks that appear in almost every program: var
 comments, and control flow. None of them is specific to Rust, but Rust's rules for them are stricter than most languages,
 and each rule has a reason.
 
-The steps go in the order a program uses them. Homework at the end gives you three problems to practise on.
+The steps go in the order a program uses them. Homework at the end gives you three problems to practice on.
 
 * [Variables and mutability](#goto/01-variables-and-mutability): why variables are immutable by default.
 * [Constants and shadowing](#goto/02-constants-and-shadowing): two ways to give a name to a value.

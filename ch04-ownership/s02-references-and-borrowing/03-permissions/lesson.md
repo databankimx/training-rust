@@ -119,7 +119,7 @@ doesn't have write permission, because the data it points to is behind an immuta
 We said that a reference changes permissions while it's in use. The period during which a reference is in use is its
 **lifetime**. It begins where the reference is created, and ends at the last place it is used.
 
-Lifetimes are often contiguous, but control flow can split them. Here's a function that capitalises the first
+Lifetimes are often contiguous, but control flow can split them. Here's a function that capitalizes the first
 character of a vector of ASCII characters:
 
 ```rust
@@ -134,7 +134,7 @@ fn ascii_capitalize(v: &mut Vec<char>) {
 }
 ```
 
-This function prints only when the first character is already capitalised. It's shown to illustrate lifetimes, and
+This function prints only when the first character is already capitalized. It's shown to illustrate lifetimes, and
 isn't a complete program.
 
 The reference `c` has a different lifetime in each branch of the `if`. In the first branch, `c` is used to compute
@@ -240,16 +240,16 @@ fn main() {
 }
 ```
 
-Which of the following best describes the point at which undefined behaviour occurs?
+Which of the following best describes the point at which undefined behavior occurs?
 
 ○ `v2` owns the vector data on the heap, while `v1` does not
-→ Not quite. That's a true description of the program, but it doesn't explain where the undefined behaviour happens.
+→ Not quite. That's a true description of the program, but it doesn't explain where the undefined behavior happens.
 ○ `v1` has been moved into `v2` on line 3
-→ Not quite. That's true, and it's why `v1` can't be used. But the move itself isn't undefined behaviour.
+→ Not quite. That's true, and it's why `v1` can't be used. But the move itself isn't undefined behavior.
 ○ `v1` has its pointer invalidated by the `push` on line 4
 → Not quite. `push` acts on `v2`. The pointer that matters is `v1`'s, and it's changed by the move.
 ◉ `v1[0]` reads `v1`, which points to deallocated memory
-→ Yes. Reading `v1` after it has been moved means reading memory that has already been freed. That read is the undefined behaviour.
+→ Yes. Reading `v1` after it has been moved means reading memory that has already been freed. That read is the undefined behavior.
 ````
 
 ---

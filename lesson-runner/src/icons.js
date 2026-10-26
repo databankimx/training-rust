@@ -21,7 +21,7 @@ const SHAPES = {
   moon: `<defs><mask id="moon-cut"><rect width="18" height="18" fill="white"/><circle cx="12.5" cy="6.5" r="5.5" fill="black"/></mask></defs><circle cx="9" cy="9" r="6.5" fill="currentColor" stroke="none" mask="url(#moon-cut)"/>`,
 };
 
-/** An SVG element for the named icon, coloured with the current text colour. */
+/** An SVG element for the named icon, coloured with the current text color. */
 export function icon(kind) {
   return `<svg class="icon" viewBox="0 0 18 18" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${SHAPES[kind]}</svg>`;
 }

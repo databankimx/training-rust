@@ -2,7 +2,7 @@
 
 Ownership is the idea that makes Rust different from most languages you may know. Many experienced
 programmers find it the hardest part of Rust, so this chapter takes it slowly. The goal is not
-to memorise rules, but to understand why they exist.
+to memorize rules, but to understand why they exist.
 
 Everything starts with memory. A program needs somewhere to keep its values while it runs, and Rust
 puts them in one of two places: the **stack** and the **heap**.
@@ -303,7 +303,7 @@ This is an illustration only, and it won't compile. Rust has no `free` function,
 what would happen if a box could be freed by hand.
 
 After `free(b)`, the pointer in `b` leads to memory that has been released. The pointer itself is not the
-problem, but reading through it is undefined behaviour:
+problem, but reading through it is undefined behavior:
 
 ```dot
 digraph {

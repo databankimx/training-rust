@@ -92,7 +92,7 @@ digraph {
 
 *Diagram adapted from the [Brown University edition of The Rust Programming Language](https://rust-book.cs.brown.edu/).*
 
-The dashed arrow is `largest`, which now points at the old buffer, which has been freed. That is the undefined behaviour
+The dashed arrow is `largest`, which now points at the old buffer, which has been freed. That is the undefined behavior
 the borrow checker prevents.
 
 ---

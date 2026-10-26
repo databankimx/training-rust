@@ -4,7 +4,7 @@ You've already been writing functions. Every program has one called `main`, and 
 `println!`, which is a macro, not a function. In this step, you'll write your own functions, pass
 values into them, and get values back out.
 
-Functions are one of the main ways Rust programs are organised. A large program is made of
+Functions are one of the main ways Rust programs are organized. A large program is made of
 many small functions, each doing one job.
 
 ---

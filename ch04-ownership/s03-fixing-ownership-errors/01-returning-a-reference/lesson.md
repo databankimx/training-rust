@@ -32,7 +32,7 @@ error[E0106]: missing lifetime specifier
 ```
 
 The message is about lifetimes, which the last section introduced. The reason is that `s` is freed when the
-function returns, so a reference to it would point at freed memory. That's undefined behaviour, so this program
+function returns, so a reference to it would point at freed memory. That's undefined behavior, so this program
 is *unsafe*.
 
 ---
@@ -95,7 +95,7 @@ This style can be verbose, but it's useful when the caller needs to control exac
 
 ### Choosing a fix
 
-Which fix is right depends on the application. The key idea is to recognise the root problem underneath the
+Which fix is right depends on the application. The key idea is to recognize the root problem underneath the
 surface error. Ask yourself:
 
 * How long should the string live?

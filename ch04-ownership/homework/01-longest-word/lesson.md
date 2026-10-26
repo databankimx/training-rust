@@ -39,4 +39,4 @@ Check these by hand before you trust it:
 
 ---
 
-*This exercise is not from the book. It practises slices and borrowing from Chapter 4.*
+*This exercise is not from the book. It practices slices and borrowing from Chapter 4.*

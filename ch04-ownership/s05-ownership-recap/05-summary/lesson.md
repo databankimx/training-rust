@@ -1,7 +1,7 @@
 ## Summary: Ownership
 
 This chapter introduced ownership, which is Rust's way of managing memory without a garbage collector. It also covered
-the concepts that go with it: references, slices, the stack and the heap, pointers, and undefined behaviour. Here's
+the concepts that go with it: references, slices, the stack and the heap, pointers, and undefined behavior. Here's
 how they fit together.
 
 * **Ownership versus garbage collection:** a garbage collector frees memory at runtime, but it adds overhead and can make
@@ -12,9 +12,9 @@ how they fit together.
 * **Permissions at compile time:** read, write, and own permissions decide what each operation may do. Moves remove all
   permissions from the moved variable, and borrows remove some from the borrowed data, for as long as the borrow is in use.
   *(See the permissions step.)*
-* **Undefined behaviour:** use-after-free and double-free are the two kinds the rules are designed to prevent. The borrow
-  checker always rejects programs with undefined behaviour, but it sometimes rejects safe programs too. *(See the undefined
-  behaviour step.)*
+* **Undefined behavior:** use-after-free and double-free are the two kinds the rules are designed to prevent. The borrow
+  checker always rejects programs with undefined behavior, but it sometimes rejects safe programs too. *(See the undefined
+  behavior step.)*
 
 When you're designing a function, the signature is where most of this is decided. Ask who owns each value, and how long
 it must live. Ask which permissions the function really needs. Choose the signature that asks for the least, and the

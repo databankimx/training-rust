@@ -65,7 +65,7 @@ Rust reports:
 error[E0502]: cannot borrow `name.1` as mutable because it is also borrowed as immutable
 ```
 
-This is strange, because the program is safe, and the refactoring doesn't change its behaviour. The reason is that Rust
+This is strange, because the program is safe, and the refactoring doesn't change its behavior. The reason is that Rust
 doesn't look inside `get_first` when it decides what `get_first(&name)` borrows. It only looks at the signature, which says
 a `String` from the input is borrowed. So it conservatively assumes both fields are borrowed.
 
@@ -150,7 +150,7 @@ Which of the following best describes the undefined behavior that could occur if
 ○ The read of `v[i - 1]` is a use of freed memory
 → Not quite. The vector is still alive, and the read is of an element within it.
 ◉ There is no undefined behavior in this program
-→ Yes. The program is safe. If `i` were out of bounds, Rust would panic at runtime, not cause undefined behaviour. The borrow checker rejects it because it can't tell that `v[i]` and `v[i - 1]` are different elements.
+→ Yes. The program is safe. If `i` were out of bounds, Rust would panic at runtime, not cause undefined behavior. The borrow checker rejects it because it can't tell that `v[i]` and `v[i - 1]` are different elements.
 ````
 
 ````quiz

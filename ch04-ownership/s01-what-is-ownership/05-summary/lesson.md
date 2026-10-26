@@ -7,7 +7,7 @@ linked to the step where we covered it.
 
 ### Safety comes first
 
-Rust's rules exist to keep programs *safe*, which means free of undefined behaviour. Some mistakes, such as using
+Rust's rules exist to keep programs *safe*, which means free of undefined behavior. Some mistakes, such as using
 a variable before it has a value, are rejected at compile time, so they never reach a running program.
 *(See the step on memory safety.)*
 
@@ -39,9 +39,9 @@ where the move happened. Cloning makes an independent copy when you need one. Co
 
 ### Ownership is a discipline for safety
 
-Ownership isn't a set of arbitrary restrictions. Each rule exists to avoid a specific kind of undefined behaviour.
-When the compiler rejects a program, the error is usually pointing at one of those behaviours, so the rules are
-worth understanding rather than memorising.
+Ownership isn't a set of arbitrary restrictions. Each rule exists to avoid a specific kind of undefined behavior.
+When the compiler rejects a program, the error is usually pointing at one of those behaviors, so the rules are
+worth understanding rather than memorizing.
 
 ---
 

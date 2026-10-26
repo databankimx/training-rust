@@ -31,9 +31,9 @@ fn print_verse(day: usize, ordinal: &str) {
     for index in (0..day).rev() {
         let gift = GIFTS[index];
         if index > 0 {
-            println!("{},", capitalise(gift));
+            println!("{},", capitalize(gift));
         } else if day == 1 {
-            println!("{}.", capitalise(gift));
+            println!("{}.", capitalize(gift));
         } else {
             println!("and {gift}.");
         }
@@ -42,7 +42,7 @@ fn print_verse(day: usize, ordinal: &str) {
     println!();
 }
 
-fn capitalise(text: &str) -> String {
+fn capitalize(text: &str) -> String {
     let mut chars = text.chars();
     match chars.next() {
         Some(first) => first.to_uppercase().collect::<String>() + chars.as_str(),

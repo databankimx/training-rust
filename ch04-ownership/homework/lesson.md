@@ -4,7 +4,7 @@ You've reached the end of Chapter 4, which is the hardest chapter in the book fo
 references and borrowing, the rules that keep them safe, slices, and how to fix the errors the borrow checker reports. If
 those ideas feel tangled, that's normal, and the exercises below are a good way to untangle them.
 
-The exercises are not from the book. They're designed to practise the ideas together, and each one uses a different part of
+The exercises are not from the book. They're designed to practice the ideas together, and each one uses a different part of
 the chapter.
 
 ---
@@ -30,4 +30,4 @@ permission it says is missing, and which borrow is still in use.
 
 ---
 
-*These exercises are not from the book. They're written to practise the ideas in Chapter 4.*
+*These exercises are not from the book. They're written to practice the ideas in Chapter 4.*

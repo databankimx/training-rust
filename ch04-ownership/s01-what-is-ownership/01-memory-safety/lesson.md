@@ -100,7 +100,7 @@ in that register. The register would then contain whatever was there before, whi
 a large number that happens to be left over from earlier work. `read` would then treat that value as a `bool`,
 even though it isn't one.
 
-This is what the book calls **undefined behaviour**. Rust doesn't specify what happens when `if y` runs with a
+This is what the book calls **undefined behavior**. Rust doesn't specify what happens when `if y` runs with a
 `y` that is neither `true` nor `false`. Something will happen, but Rust can't tell you what. For example:
 
 * The program might run without any visible problem, and nobody notices.
@@ -112,16 +112,16 @@ can be serious.
 
 ---
 
-### Safety is the absence of undefined behaviour
+### Safety is the absence of undefined behavior
 
 With that in mind, the meaning of safety in Rust becomes clear:
 
 > **A foundational goal of Rust is to ensure that your programs never have undefined behavior.** That is the
 > meaning of "safety."
 
-Undefined behaviour is especially dangerous in low-level programs, which have direct access to memory. Many
+Undefined behavior is especially dangerous in low-level programs, which have direct access to memory. Many
 serious security vulnerabilities in low-level software come from memory corruption, which is one kind of
-undefined behaviour. The Rust Reference keeps a list of
+undefined behavior. The Rust Reference keeps a list of
 ["Behavior considered undefined"](https://doc.rust-lang.org/reference/behavior-considered-undefined.html), and
 ownership is about preventing a particular group of those: the operations on memory.
 
@@ -135,7 +135,7 @@ means fewer runtime checks, which makes the program faster.
 
 Rust's protections don't make a program bug-free. If an application exposes a public, unauthenticated endpoint
 that deletes a production database, a malicious user doesn't need a clever bug to cause damage. Rust can't stop
-that. Its protections are about a specific class of mistakes, the ones that lead to undefined behaviour.
+that. Its protections are about a specific class of mistakes, the ones that lead to undefined behavior.
 
 Within that class, the protections are strong. Teams that have moved parts of their software to memory-safe
 languages have seen large reductions in memory-related security problems, and that's part of why Rust's rules
