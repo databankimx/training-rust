@@ -88,6 +88,10 @@ let lessonText = "";
 let popped = false;
 let spoilerHidden = false;
 
+// Which kind of run the argument box and quick picks are for: "run" or "test". Set by the Run and Test buttons.
+let pickKind = "run";
+let stepCommands = [];
+
 // Output
 
 /** Colours a line by what it says, so compiler status is not mistaken for an error. */
@@ -295,6 +299,7 @@ async function selectStep(chapter, step) {
   updateButtons();
   setTab(activeTab);
   input.value = "";
+  pickKind = step.has_main ? "run" : "test";
   loadCommandPicks(step);
   if (spoilerHidden) {
     await loadLesson(step);
@@ -434,32 +439,46 @@ function renderLesson() {
   renderLessonInto(lessonEl, lessonText);
 }
 
-// Quick picks for the step. The text after cargo test or cargo run becomes the argument box's contents.
+// Quick picks for the step. Only the picks for the current kind of run (cargo run or cargo test) are listed.
 async function loadCommandPicks(step) {
+  const commands = step.has_code ? await invoke("read_commands", { path: step.path }) : [];
+  if (selectedStep !== step) return;
+  stepCommands = commands;
+  renderCommandPick();
+}
+
+function renderCommandPick() {
   commandPick.replaceChildren();
   const placeholder = document.createElement("option");
   placeholder.textContent = "Quick picks";
   placeholder.value = "";
   commandPick.appendChild(placeholder);
-  if (step.has_code) {
-    const commands = await invoke("read_commands", { path: step.path });
-    for (const command of commands) {
-      const option = document.createElement("option");
-      option.textContent = command;
-      option.value = command.replace(/^cargo\s+(test|run)\s*/, "");
-      commandPick.appendChild(option);
-    }
+  for (const command of stepCommands) {
+    // A pick may start with NAME=value settings, such as IGNORE_CASE=1. They stay in the box, and the cargo part gives the kind.
+    const match = command.match(/^((?:\w+=\S+\s+)*)cargo\s+(test|run)\s*(.*)$/);
+    const option = document.createElement("option");
+    option.textContent = command;
+    option.value = match ? match[1] + match[3] : command;
+    option.dataset.kind = match && match[2] === "test" ? "test" : "run";
+    commandPick.appendChild(option);
   }
   updateButtons();
 }
 
 commandPick.addEventListener("change", () => {
-  // Always replace the box's text, so choosing "cargo test" (no arguments) clears the previous arguments.
+  // Choosing a pick sets the kind of run as well as the arguments. Choosing "cargo test" (no arguments) clears the box.
+  const option = commandPick.selectedOptions[0];
+  if (option && option.dataset.kind) pickKind = option.dataset.kind;
   input.value = commandPick.value;
   input.focus();
 });
 
 // Running
+
+// The argument box's text, split into separate arguments. An empty box gives no arguments.
+function boxArgs() {
+  return input.value.trim().split(/\s+/).filter(Boolean);
+}
 
 async function run(mode, args = []) {
   if (!selectedStep || running) return;
@@ -490,8 +509,8 @@ async function sendInput(event) {
   // While a program is running, the box sends a line to it. Otherwise it gives the arguments for a run.
   if (!running) {
     if (!selectedStep) return;
-    const args = input.value.trim().split(/\s+/).filter(Boolean);
-    run(selectedStep.has_tests ? "test" : "run", args);
+    const args = boxArgs();
+    run(pickKind, args);
     return;
   }
   const text = input.value;
@@ -547,8 +566,16 @@ function setTab(name) {
   if (name === "lesson") applyLessonScroll();
 }
 
-runButton.addEventListener("click", () => run("run"));
-testButton.addEventListener("click", () => run("test"));
+runButton.addEventListener("click", () => {
+  pickKind = "run";
+  renderCommandPick();
+  run("run", boxArgs());
+});
+testButton.addEventListener("click", () => {
+  pickKind = "test";
+  renderCommandPick();
+  run("test", boxArgs());
+});
 
 // A short message that fades out. The text is shown for a moment, then removed.
 function showToast(message) {
@@ -584,7 +611,7 @@ revealButton.addEventListener("click", async () => {
   localStorage.setItem(REVEALED_PREFIX + selectedStep.path, "1");
   spoilerHidden = false;
   updateButtons();
-  await Promise.all([loadSource(selectedStep), loadLesson(selectedStep)]);
+  await Promise.all([loadSource(selectedStep), loadLesson(selectedStep), loadCommandPicks(selectedStep)]);
   setTab("source");
 });
 
@@ -623,7 +650,7 @@ document.querySelectorAll(".tab").forEach((tab) => {
 document.addEventListener("keydown", (event) => {
   if (event.key === "F5") {
     event.preventDefault();
-    run();
+    run(undefined, boxArgs());
   } else if (event.key === "Escape") {
     if (running) {
       stop();

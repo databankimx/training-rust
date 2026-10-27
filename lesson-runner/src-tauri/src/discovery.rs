@@ -49,6 +49,17 @@ fn chapter_number(name: &str) -> Option<u32> {
     digits.parse().ok()
 }
 
+/// Words that are always written in capitals in titles, whatever the folder name says. Matching ignores case, so `io` shows as IO.
+/// Add an acronym here when a folder name would otherwise show it as a normal word.
+const ALL_CAPS_WORDS: &[&str] = &["api", "cli", "ffi", "http", "io", "json", "sql", "ui", "url", "xml"];
+
+/// The all-caps form of a word, if it's on the exceptions list.
+fn all_caps(word: &str) -> Option<String> {
+    ALL_CAPS_WORDS
+        .contains(&word.to_lowercase().as_str())
+        .then(|| word.to_uppercase())
+}
+
 /// A display title such as "Ch07 · Packages", from a folder name such as `ch07-packages`.
 fn chapter_title(name: &str, number: u32) -> String {
     let rest = name
@@ -59,11 +70,13 @@ fn chapter_title(name: &str, number: u32) -> String {
         .split('-')
         .filter(|word| !word.is_empty())
         .map(|word| {
-            let mut chars = word.chars();
-            match chars.next() {
-                Some(first) => first.to_uppercase().collect::<String>() + chars.as_str(),
-                None => String::new(),
-            }
+            all_caps(word).unwrap_or_else(|| {
+                let mut chars = word.chars();
+                match chars.next() {
+                    Some(first) => first.to_uppercase().collect::<String>() + chars.as_str(),
+                    None => String::new(),
+                }
+            })
         })
         .collect();
     format!("Ch{number:02} · {}", words.join(" "))
@@ -108,16 +121,29 @@ pub fn discover() -> Vec<Chapter> {
     chapters.into_iter().map(|(_, chapter)| chapter).collect()
 }
 
-/// A step title from a folder name such as `02-hello-world`: "Hello world".
+/// A step title from a folder name such as `02-hello-world`: "Hello world". Only the first word is capitalized,
+/// except for words on the all-caps list, which are capitalized wherever they appear.
 fn step_title(name: &str) -> String {
     let rest = name.trim_start_matches(|c: char| c.is_ascii_digit()).trim_start_matches('-');
-    let words: Vec<String> = rest.split('-').filter(|w| !w.is_empty()).map(str::to_string).collect();
-    let joined = words.join(" ");
-    let mut chars = joined.chars();
-    match chars.next() {
-        Some(first) => first.to_uppercase().collect::<String>() + chars.as_str(),
-        None => String::new(),
-    }
+    let words: Vec<String> = rest
+        .split('-')
+        .filter(|w| !w.is_empty())
+        .enumerate()
+        .map(|(index, word)| {
+            if let Some(caps) = all_caps(word) {
+                return caps;
+            }
+            if index > 0 {
+                return word.to_string();
+            }
+            let mut chars = word.chars();
+            match chars.next() {
+                Some(first) => first.to_uppercase().collect::<String>() + chars.as_str(),
+                None => String::new(),
+            }
+        })
+        .collect();
+    words.join(" ")
 }
 
 /// The number of a sub-chapter folder such as `s01-what-is-ownership`, or None.

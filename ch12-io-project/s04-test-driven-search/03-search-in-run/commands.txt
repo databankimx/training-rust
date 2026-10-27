@@ -1,0 +1,4 @@
+cargo run -- frog poem.txt
+cargo run -- body poem.txt
+cargo run -- monomorphization poem.txt
+cargo test one_result

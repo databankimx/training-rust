@@ -1,0 +1,2 @@
+cargo run -- test poem.txt
+cargo run
