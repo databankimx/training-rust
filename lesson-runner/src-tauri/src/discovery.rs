@@ -8,6 +8,8 @@ pub struct Step {
     pub title: String,
     pub path: String,
     pub has_code: bool,
+    pub has_tests: bool,
+    pub has_main: bool,
 }
 
 #[derive(Serialize, Clone)]
@@ -164,10 +166,13 @@ fn steps_in(practice: &Path) -> Vec<Step> {
         })
         .map(|path| {
             let name = path.file_name().unwrap_or_default().to_string_lossy().into_owned();
+            let (has_tests, has_main) = scan_sources(&path);
             Step {
                 title: step_title(&name),
                 name,
                 has_code: path.join("Cargo.toml").is_file(),
+                has_tests,
+                has_main,
                 path: path.to_string_lossy().into_owned(),
             }
         })
@@ -175,4 +180,28 @@ fn steps_in(practice: &Path) -> Vec<Step> {
 
     steps.sort_by(|a, b| a.name.cmp(&b.name));
     steps
+}
+
+/// Whether a step's Rust sources contain a test, and whether they contain a main function. Both are read from the files on disk.
+fn scan_sources(step: &Path) -> (bool, bool) {
+    let mut tests = false;
+    let mut main = false;
+    let mut pending = vec![step.join("src")];
+    while let Some(dir) = pending.pop() {
+        let Ok(entries) = fs::read_dir(&dir) else {
+            continue;
+        };
+        for entry in entries.flatten() {
+            let p = entry.path();
+            if p.is_dir() {
+                pending.push(p);
+            } else if p.extension().is_some_and(|e| e == "rs") {
+                if let Ok(text) = fs::read_to_string(&p) {
+                    tests |= text.contains("#[test]");
+                    main |= text.contains("fn main(");
+                }
+            }
+        }
+    }
+    (tests, main)
 }

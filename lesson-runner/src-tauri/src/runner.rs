@@ -34,6 +34,7 @@ pub fn start(
     dir: String,
     source: Option<String>,
     backtrace: bool,
+    test: bool,
 ) -> Result<(), String> {
     stop(&state);
 
@@ -43,7 +44,7 @@ pub fn start(
         command.env("RUST_BACKTRACE", "1");
     }
     command
-        .arg("run")
+        .arg(if test { "test" } else { "run" })
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
         .stderr(Stdio::piped());

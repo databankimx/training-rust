@@ -13,6 +13,7 @@ const titleEl = document.querySelector("#title");
 const subtitleEl = document.querySelector("#subtitle");
 const output = document.querySelector("#output");
 const runButton = document.querySelector("#run");
+const testButton = document.querySelector("#test");
 const stopButton = document.querySelector("#stop");
 const clearButton = document.querySelector("#clear");
 const inputForm = document.querySelector("#input-form");
@@ -53,7 +54,9 @@ const BACKTRACE_KEY = "rust-training-backtrace";
 const backtraceLabel = document.createElement("label");
 backtraceLabel.title = "Show a backtrace when a program panics";
 backtraceLabel.style.fontSize = "12px";
-backtraceLabel.style.marginRight = "8px";
+backtraceLabel.style.marginLeft = "32px";
+backtraceLabel.style.fontWeight = "normal";
+backtraceLabel.style.letterSpacing = "normal";
 const backtraceToggle = document.createElement("input");
 backtraceToggle.type = "checkbox";
 backtraceToggle.checked = localStorage.getItem(BACKTRACE_KEY) === "1";
@@ -61,7 +64,12 @@ backtraceToggle.addEventListener("change", () => {
   localStorage.setItem(BACKTRACE_KEY, backtraceToggle.checked ? "1" : "0");
 });
 backtraceLabel.append(backtraceToggle, " Backtrace");
-clearButton.before(backtraceLabel);
+// The checkbox sits to the right of the OUTPUT heading, in a group that keeps the two together on the left of the bar.
+const paneLabel = document.querySelector(".pane-label");
+const paneLeft = document.createElement("span");
+paneLeft.className = "pane-left";
+paneLabel.before(paneLeft);
+paneLeft.append(paneLabel, backtraceLabel);
 
 let chapters = [];
 let selectedChapter = null;
@@ -107,7 +115,14 @@ function appendNote(text, className) {
 // Buttons and chapters
 
 function updateButtons() {
-  runButton.disabled = running || !selectedStep || !selectedStep.has_code || spoilerHidden;
+  const hasTests = Boolean(selectedStep && selectedStep.has_tests);
+  const testOnly = hasTests && !selectedStep.has_main;
+  // A step whose only program is its tests shows Test in place of Run. Otherwise the two sit side by side.
+  runButton.classList.toggle("hidden", testOnly);
+  testButton.classList.toggle("hidden", !hasTests);
+  const ready = !running && Boolean(selectedStep) && selectedStep.has_code && !spoilerHidden;
+  runButton.disabled = !ready;
+  testButton.disabled = !ready;
   stopButton.disabled = !running;
   input.disabled = !running;
   sendButton.disabled = !running;
@@ -409,8 +424,10 @@ function renderLesson() {
 
 // Running
 
-async function run() {
+async function run(mode) {
   if (!selectedStep || running) return;
+  // With no mode given (F5), a test-only step runs its tests, and any other step runs its program.
+  const kind = mode ?? (selectedStep.has_tests && !selectedStep.has_main ? "test" : "run");
   running = true;
   output.replaceChildren();
   updateButtons();
@@ -418,7 +435,7 @@ async function run() {
   const mainText = currentFile === "main.rs" ? editor.value : mainDraft ?? originalMain;
   const edited = mainText !== originalMain ? mainText : null;
   try {
-    await invoke("run_step", { path: selectedStep.path, source: edited, backtrace: backtraceToggle.checked });
+    await invoke("run_step", { path: selectedStep.path, source: edited, backtrace: backtraceToggle.checked, test: kind === "test" });
   } catch (error) {
     appendOutput(`${error}\n`, "stderr");
     running = false;
@@ -486,7 +503,36 @@ function setTab(name) {
   if (name === "lesson") applyLessonScroll();
 }
 
-runButton.addEventListener("click", run);
+runButton.addEventListener("click", () => run("run"));
+testButton.addEventListener("click", () => run("test"));
+
+// A short message that fades out. The text is shown for a moment, then removed.
+function showToast(message) {
+  const toast = document.createElement("div");
+  toast.className = "toast";
+  toast.textContent = message;
+  document.body.append(toast);
+  setTimeout(() => toast.classList.add("fade"), 400);
+  setTimeout(() => toast.remove(), 1250);
+}
+
+// Undocumented: Ctrl+Shift+Alt+Backspace clears quiz answers and revealed solutions. Backtrace and theme settings are kept.
+// It listens in the capture phase, so the editor and other controls cannot swallow the key before it arrives.
+window.addEventListener(
+  "keydown",
+  (event) => {
+    if (!(event.ctrlKey && event.shiftKey && event.altKey && event.key === "Backspace")) return;
+    event.preventDefault();
+    for (const key of Object.keys(localStorage)) {
+      if (key.startsWith("rust-training-quiz:") || key.startsWith("rust-training-revealed:")) {
+        localStorage.removeItem(key);
+      }
+    }
+    if (selectedStep) selectStep(selectedChapter, selectedStep);
+    showToast("Progress reset");
+  },
+  true,
+);
 
 // Spoiler: reveals the example solution for a homework step, and remembers that it was revealed.
 revealButton.addEventListener("click", async () => {

@@ -70,6 +70,25 @@ html, body {
 
 .hidden { display: none !important; }
 
+/* Short messages, such as "Progress reset", that fade out by themselves. */
+.toast {
+  position: fixed;
+  bottom: 28px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 8px 18px;
+  border-radius: 4px;
+  background: var(--header);
+  color: #ffffff;
+  font-size: 13px;
+  pointer-events: none;
+  z-index: 1000;
+  opacity: 1;
+  transition: opacity 0.8s;
+}
+
+.toast.fade { opacity: 0; }
+
 .app {
   display: flex;
   height: 100vh;
@@ -285,6 +304,11 @@ button.link:hover:not(:disabled) { color: var(--text); }
   display: flex;
   align-items: center;
   gap: 4px;
+}
+
+.pane-left {
+  display: flex;
+  align-items: center;
 }
 
 .theme-group {

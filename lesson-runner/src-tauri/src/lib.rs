@@ -168,8 +168,9 @@ fn run_step(
     path: String,
     source: Option<String>,
     backtrace: bool,
+    test: bool,
 ) -> Result<(), String> {
-    runner::start(app, state, path, source, backtrace)
+    runner::start(app, state, path, source, backtrace, test)
 }
 
 #[tauri::command]
