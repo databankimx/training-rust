@@ -44,6 +44,12 @@ let originalMain = "";
 let mainDraft = null;
 let fileCount = 0;
 
+// Quick picks: whole commands from the step's commands.txt. Choosing one fills the argument box.
+const commandPick = document.createElement("select");
+commandPick.className = "command-pick hidden";
+commandPick.title = "Quick picks for this step";
+input.before(commandPick);
+
 // The drop-down is shown only on the Source tab, for steps with more than one source file.
 function updateFileSelect() {
   fileSelect.classList.toggle("hidden", activeTab !== "source" || spoilerHidden || fileCount < 2);
@@ -124,8 +130,12 @@ function updateButtons() {
   runButton.disabled = !ready;
   testButton.disabled = !ready;
   stopButton.disabled = !running;
-  input.disabled = !running;
-  sendButton.disabled = !running;
+  // While nothing is running, the input box takes the arguments for a run or a test.
+  input.disabled = !running && !ready;
+  sendButton.disabled = !running && !ready;
+  input.placeholder = running ? "type a line for the program, then Enter" : "arguments, then Enter to run";
+  sendButton.textContent = running ? "Send" : "Go";
+  commandPick.classList.toggle("hidden", running || !ready || commandPick.options.length <= 1);
 }
 
 function renderChapters() {
@@ -284,6 +294,8 @@ async function selectStep(chapter, step) {
   renderSteps();
   updateButtons();
   setTab(activeTab);
+  input.value = "";
+  loadCommandPicks(step);
   if (spoilerHidden) {
     await loadLesson(step);
   } else {
@@ -422,9 +434,34 @@ function renderLesson() {
   renderLessonInto(lessonEl, lessonText);
 }
 
+// Quick picks for the step. The text after cargo test or cargo run becomes the argument box's contents.
+async function loadCommandPicks(step) {
+  commandPick.replaceChildren();
+  const placeholder = document.createElement("option");
+  placeholder.textContent = "Quick picks";
+  placeholder.value = "";
+  commandPick.appendChild(placeholder);
+  if (step.has_code) {
+    const commands = await invoke("read_commands", { path: step.path });
+    for (const command of commands) {
+      const option = document.createElement("option");
+      option.textContent = command;
+      option.value = command.replace(/^cargo\s+(test|run)\s*/, "");
+      commandPick.appendChild(option);
+    }
+  }
+  updateButtons();
+}
+
+commandPick.addEventListener("change", () => {
+  // Always replace the box's text, so choosing "cargo test" (no arguments) clears the previous arguments.
+  input.value = commandPick.value;
+  input.focus();
+});
+
 // Running
 
-async function run(mode) {
+async function run(mode, args = []) {
   if (!selectedStep || running) return;
   // With no mode given (F5), a test-only step runs its tests, and any other step runs its program.
   const kind = mode ?? (selectedStep.has_tests && !selectedStep.has_main ? "test" : "run");
@@ -435,7 +472,7 @@ async function run(mode) {
   const mainText = currentFile === "main.rs" ? editor.value : mainDraft ?? originalMain;
   const edited = mainText !== originalMain ? mainText : null;
   try {
-    await invoke("run_step", { path: selectedStep.path, source: edited, backtrace: backtraceToggle.checked, test: kind === "test" });
+    await invoke("run_step", { path: selectedStep.path, source: edited, backtrace: backtraceToggle.checked, test: kind === "test", args });
   } catch (error) {
     appendOutput(`${error}\n`, "stderr");
     running = false;
@@ -450,6 +487,13 @@ async function stop() {
 
 async function sendInput(event) {
   event.preventDefault();
+  // While a program is running, the box sends a line to it. Otherwise it gives the arguments for a run.
+  if (!running) {
+    if (!selectedStep) return;
+    const args = input.value.trim().split(/\s+/).filter(Boolean);
+    run(selectedStep.has_tests ? "test" : "run", args);
+    return;
+  }
   const text = input.value;
   input.value = "";
   appendNote(`${text}\n`, "input");

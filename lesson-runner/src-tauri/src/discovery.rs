@@ -186,7 +186,7 @@ fn steps_in(practice: &Path) -> Vec<Step> {
 fn scan_sources(step: &Path) -> (bool, bool) {
     let mut tests = false;
     let mut main = false;
-    let mut pending = vec![step.join("src")];
+    let mut pending = vec![step.join("src"), step.join("tests")];
     while let Some(dir) = pending.pop() {
         let Ok(entries) = fs::read_dir(&dir) else {
             continue;

@@ -408,6 +408,17 @@ button.link:hover:not(:disabled) { color: var(--text); }
 
 .input-row label { color: var(--muted); }
 
+.command-pick {
+  max-width: 260px;
+  padding: 5px 8px;
+  background: var(--field);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  font: inherit;
+  font-size: 12px;
+}
+
 .input-row input {
   flex: 1;
   padding: 6px 10px;

@@ -48,6 +48,11 @@ fn list_source_files(path: String) -> Vec<String> {
     let src = std::path::Path::new(&path).join("src");
     let mut files = Vec::new();
     collect_rs_files(&src, &src, &mut files);
+    // Integration tests live in tests, and their names are shown with a tests/ prefix.
+    let tests = std::path::Path::new(&path).join("tests");
+    let mut test_files = Vec::new();
+    collect_rs_files(&tests, &tests, &mut test_files);
+    files.extend(test_files.into_iter().map(|file| format!("tests/{file}")));
     files.sort_by(|a, b| (a != "main.rs").cmp(&(b != "main.rs")).then_with(|| a.cmp(b)));
     files
 }
@@ -74,7 +79,12 @@ fn read_source(path: String, file: String) -> Result<String, String> {
     if file.contains("..") || file.starts_with('/') || file.starts_with('\\') || !file.ends_with(".rs") {
         return Err(format!("Not a source file: {file}"));
     }
-    let full = std::path::Path::new(&path).join("src").join(&file);
+    // A name starting with tests/ is in the step's tests folder. Any other name is in src.
+    let base = std::path::Path::new(&path);
+    let full = match file.strip_prefix("tests/") {
+        Some(rest) => base.join("tests").join(rest),
+        None => base.join("src").join(&file),
+    };
     std::fs::read_to_string(&full).map_err(|e| format!("Could not read {}: {e}", full.display()))
 }
 
@@ -145,6 +155,15 @@ async fn dock_lesson(app: AppHandle) -> Result<(), String> {
     Ok(())
 }
 
+/// Quick picks for a step's test or run arguments: one whole command per line in its commands.txt file.
+#[tauri::command]
+fn read_commands(path: String) -> Vec<String> {
+    let file = std::path::Path::new(&path).join("commands.txt");
+    std::fs::read_to_string(&file)
+        .map(|text| text.lines().map(str::trim).filter(|line| !line.is_empty()).map(String::from).collect())
+        .unwrap_or_default()
+}
+
 /// Asks the main window to navigate to a named chapter, section, or step. Links in the pop-out use this too.
 #[tauri::command]
 fn navigate_to(app: AppHandle, name: String) {
@@ -169,8 +188,9 @@ fn run_step(
     source: Option<String>,
     backtrace: bool,
     test: bool,
+    args: Vec<String>,
 ) -> Result<(), String> {
-    runner::start(app, state, path, source, backtrace, test)
+    runner::start(app, state, path, source, backtrace, test, args)
 }
 
 #[tauri::command]
@@ -222,6 +242,7 @@ pub fn run() {
             dock_lesson,
             open_external,
             navigate_to,
+            read_commands,
             set_theme,
             get_theme,
             run_step,

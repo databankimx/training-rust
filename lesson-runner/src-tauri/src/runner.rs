@@ -35,6 +35,7 @@ pub fn start(
     source: Option<String>,
     backtrace: bool,
     test: bool,
+    args: Vec<String>,
 ) -> Result<(), String> {
     stop(&state);
 
@@ -43,8 +44,16 @@ pub fn start(
         // Set for this run only, so panics show a backtrace without changing the user's environment.
         command.env("RUST_BACKTRACE", "1");
     }
+    if test {
+        command.arg("test").args(&args);
+    } else {
+        command.arg("run");
+        if !args.is_empty() {
+            // Arguments for the program itself come after --, as cargo expects.
+            command.arg("--").args(&args);
+        }
+    }
     command
-        .arg(if test { "test" } else { "run" })
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
         .stderr(Stdio::piped());

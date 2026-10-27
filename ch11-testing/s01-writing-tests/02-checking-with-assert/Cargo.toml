@@ -1,0 +1,6 @@
+[package]
+name = "checking_with_assert"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
