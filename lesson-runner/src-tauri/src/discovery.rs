@@ -51,7 +51,7 @@ fn chapter_number(name: &str) -> Option<u32> {
 
 /// Words that are always written in capitals in titles, whatever the folder name says. Matching ignores case, so `io` shows as IO.
 /// Add an acronym here when a folder name would otherwise show it as a normal word.
-const ALL_CAPS_WORDS: &[&str] = &["api", "cli", "ffi", "http", "io", "json", "oo", "oop", "sql", "ui", "url", "xml"];
+const ALL_CAPS_WORDS: &[&str] = &["api", "c", "cli", "ffi", "http", "io", "json", "oo", "oop", "sql", "ui", "url", "xml"];
 
 /// The all-caps form of a word, if it's on the exceptions list.
 fn all_caps(word: &str) -> Option<String> {
