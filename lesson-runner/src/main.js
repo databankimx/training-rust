@@ -58,7 +58,7 @@ function updateFileSelect() {
 // Backtrace toggle: when it is on, each run sets RUST_BACKTRACE, so a panic shows where it came from.
 const BACKTRACE_KEY = "rust-training-backtrace";
 const backtraceLabel = document.createElement("label");
-backtraceLabel.title = "Show a backtrace when a program panics";
+backtraceLabel.dataset.tip = "Show a backtrace when a program panics";
 backtraceLabel.style.fontSize = "12px";
 backtraceLabel.style.marginLeft = "32px";
 backtraceLabel.style.fontWeight = "normal";
@@ -722,6 +722,7 @@ invoke("list_chapters")
   .catch((error) => appendOutput(`${error}\n`, "stderr"));
 
 copyOutputButton.innerHTML = icon("copy");
+clearButton.innerHTML = icon("eraser");
 copySourceButton.innerHTML = icon("copy");
 popoutButton.innerHTML = icon("popout");
 document.querySelector("#moon").innerHTML = icon("moon");

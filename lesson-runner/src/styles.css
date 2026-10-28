@@ -89,6 +89,31 @@ html, body {
 
 .toast.fade { opacity: 0; }
 
+/* Tooltips for buttons and labels marked with data-tip. The browser's own title tooltip waits about a second, so these appear at once. */
+[data-tip] {
+  position: relative;
+}
+
+[data-tip]::after {
+  content: attr(data-tip);
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  padding: 3px 7px;
+  border-radius: 3px;
+  background: var(--header);
+  color: #ffffff;
+  font-size: 12px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 50;
+}
+
+[data-tip]:hover::after {
+  opacity: 1;
+}
+
 .app {
   display: flex;
   height: 100vh;

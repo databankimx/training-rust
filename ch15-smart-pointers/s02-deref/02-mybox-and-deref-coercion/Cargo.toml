@@ -1,0 +1,6 @@
+[package]
+name = "mybox_and_deref_coercion"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]

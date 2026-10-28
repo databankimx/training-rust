@@ -15,6 +15,7 @@ function sunRays() {
 
 const SHAPES = {
   copy: `<rect x="3.5" y="5.5" width="9" height="9.5" rx="2"/><rect x="6.5" y="2.5" width="9" height="9.5" rx="2"/>`,
+  eraser: `<g transform="rotate(-35 9 9)"><rect x="3" y="6" width="5.5" height="6.5" rx="1.5" fill="currentColor"/><rect x="3" y="6" width="12" height="6.5" rx="1.5"/><line x1="8.5" y1="6" x2="8.5" y2="12.5"/></g>`,
   popout: `<line x1="5" y1="13" x2="13" y2="5"/><polyline points="7,5 13,5 13,11"/>`,
   dock: `<line x1="13" y1="5" x2="5" y2="13"/><polyline points="5,7 5,13 11,13"/>`,
   sun: `<circle cx="9" cy="9" r="3.5"/>${sunRays()}`,
