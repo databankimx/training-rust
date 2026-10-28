@@ -49,6 +49,11 @@ fn chapter_number(name: &str) -> Option<u32> {
     digits.parse().ok()
 }
 
+/// A sort key for extra chapters, such as `final-project`. They sort after the numbered chapters, and their titles have no chapter number.
+fn extra_chapter_number(name: &str) -> Option<u32> {
+    name.starts_with("final-").then_some(1000)
+}
+
 /// Words that are always written in capitals in titles, whatever the folder name says. Matching ignores case, so `io` shows as IO.
 /// Add an acronym here when a folder name would otherwise show it as a normal word.
 const ALL_CAPS_WORDS: &[&str] = &["api", "c", "cli", "ffi", "http", "io", "json", "oo", "oop", "sql", "ui", "url", "xml"];
@@ -79,6 +84,10 @@ fn chapter_title(name: &str, number: u32) -> String {
             })
         })
         .collect();
+    // Extra chapters (number 1000 and above) have no chapter number in their title.
+    if number >= 1000 {
+        return words.join(" ");
+    }
     format!("Ch{number:02} · {}", words.join(" "))
 }
 
@@ -97,7 +106,7 @@ pub fn discover() -> Vec<Chapter> {
             continue;
         }
         let name = entry.file_name().to_string_lossy().into_owned();
-        let Some(number) = chapter_number(&name) else {
+        let Some(number) = chapter_number(&name).or_else(|| extra_chapter_number(&name)) else {
             continue;
         };
         let steps = steps_in(&path);
