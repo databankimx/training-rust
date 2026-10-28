@@ -89,6 +89,12 @@ html, body {
 
 .toast.fade { opacity: 0; }
 
+/* The Run button becomes Stop while a program runs. The minimum width fits either label, so the button doesn't resize. */
+#run {
+  min-width: 6.5em;
+  text-align: center;
+}
+
 /* Tooltips for buttons and labels marked with data-tip. The browser's own title tooltip waits about a second, so these appear at once. */
 [data-tip] {
   position: relative;

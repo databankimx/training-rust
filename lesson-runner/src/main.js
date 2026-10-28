@@ -128,10 +128,14 @@ function updateButtons() {
   const hasTests = Boolean(selectedStep && selectedStep.has_tests);
   const testOnly = hasTests && !selectedStep.has_main;
   // A step whose only program is its tests shows Test in place of Run. Otherwise the two sit side by side.
-  runButton.classList.toggle("hidden", testOnly);
+  // While a program runs, the Run button stays visible, because it has become Stop.
+  runButton.classList.toggle("hidden", testOnly && !running);
   testButton.classList.toggle("hidden", !hasTests);
   const ready = !running && Boolean(selectedStep) && selectedStep.has_code && !spoilerHidden;
-  runButton.disabled = !ready;
+  // While a program runs, the Run button is Stop, and it stays enabled so the program can be stopped.
+  runButton.innerHTML = running ? "&#9632; Stop" : "&#9654; Run";
+  runButton.classList.toggle("stop", running);
+  runButton.disabled = running ? false : !ready;
   testButton.disabled = !ready;
   stopButton.disabled = !running;
   // While nothing is running, the input box takes the arguments for a run or a test.
@@ -581,6 +585,11 @@ function setTab(name) {
 }
 
 runButton.addEventListener("click", () => {
+  // While a program is running, the Run button is Stop.
+  if (running) {
+    stop();
+    return;
+  }
   pickKind = "run";
   renderCommandPick();
   run("run", boxArgs());
