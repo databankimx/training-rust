@@ -266,7 +266,21 @@ function selectChapter(chapter) {
   homeworkMode = false;
   renderChapters();
   renderSteps();
+  revealSubChapters();
   showOverview(chapter.path, "chapter:" + chapter.path, chapter.title, "");
+}
+
+// After a chapter is selected, scroll the chapters pane just far enough that its sub-chapters and Homework sit above the splitter below it.
+function revealSubChapters() {
+  const rows = chaptersEl.querySelectorAll(".section-row, .homework-row");
+  const last = rows.length ? rows[rows.length - 1] : chaptersEl.querySelector(".chapter.open");
+  if (!last) return;
+  requestAnimationFrame(() => {
+    const pane = chaptersEl.getBoundingClientRect();
+    const row = last.getBoundingClientRect();
+    const overflow = row.bottom - pane.bottom;
+    if (overflow > 0) chaptersEl.scrollTop += overflow + 4;
+  });
 }
 
 // Links in an overview lesson, such as #goto/s02-example-structs, select the named child.
