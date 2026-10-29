@@ -8,6 +8,8 @@ pub struct Step {
     pub title: String,
     pub path: String,
     pub has_code: bool,
+    pub has_tests: bool,
+    pub has_main: bool,
 }
 
 #[derive(Serialize, Clone)]
@@ -47,6 +49,22 @@ fn chapter_number(name: &str) -> Option<u32> {
     digits.parse().ok()
 }
 
+/// A sort key for extra chapters, such as `final-project`. They sort after the numbered chapters, and their titles have no chapter number.
+fn extra_chapter_number(name: &str) -> Option<u32> {
+    name.starts_with("final-").then_some(1000)
+}
+
+/// Words that are always written in capitals in titles, whatever the folder name says. Matching ignores case, so `io` shows as IO.
+/// Add an acronym here when a folder name would otherwise show it as a normal word.
+const ALL_CAPS_WORDS: &[&str] = &["api", "c", "cli", "ffi", "http", "io", "json", "oo", "oop", "sql", "ui", "url", "xml"];
+
+/// The all-caps form of a word, if it's on the exceptions list.
+fn all_caps(word: &str) -> Option<String> {
+    ALL_CAPS_WORDS
+        .contains(&word.to_lowercase().as_str())
+        .then(|| word.to_uppercase())
+}
+
 /// A display title such as "Ch07 · Packages", from a folder name such as `ch07-packages`.
 fn chapter_title(name: &str, number: u32) -> String {
     let rest = name
@@ -57,13 +75,19 @@ fn chapter_title(name: &str, number: u32) -> String {
         .split('-')
         .filter(|word| !word.is_empty())
         .map(|word| {
-            let mut chars = word.chars();
-            match chars.next() {
-                Some(first) => first.to_uppercase().collect::<String>() + chars.as_str(),
-                None => String::new(),
-            }
+            all_caps(word).unwrap_or_else(|| {
+                let mut chars = word.chars();
+                match chars.next() {
+                    Some(first) => first.to_uppercase().collect::<String>() + chars.as_str(),
+                    None => String::new(),
+                }
+            })
         })
         .collect();
+    // Extra chapters (number 1000 and above) have no chapter number in their title.
+    if number >= 1000 {
+        return words.join(" ");
+    }
     format!("Ch{number:02} · {}", words.join(" "))
 }
 
@@ -82,7 +106,7 @@ pub fn discover() -> Vec<Chapter> {
             continue;
         }
         let name = entry.file_name().to_string_lossy().into_owned();
-        let Some(number) = chapter_number(&name) else {
+        let Some(number) = chapter_number(&name).or_else(|| extra_chapter_number(&name)) else {
             continue;
         };
         let steps = steps_in(&path);
@@ -106,16 +130,29 @@ pub fn discover() -> Vec<Chapter> {
     chapters.into_iter().map(|(_, chapter)| chapter).collect()
 }
 
-/// A step title from a folder name such as `02-hello-world`: "Hello world".
+/// A step title from a folder name such as `02-hello-world`: "Hello world". Only the first word is capitalized,
+/// except for words on the all-caps list, which are capitalized wherever they appear.
 fn step_title(name: &str) -> String {
     let rest = name.trim_start_matches(|c: char| c.is_ascii_digit()).trim_start_matches('-');
-    let words: Vec<String> = rest.split('-').filter(|w| !w.is_empty()).map(str::to_string).collect();
-    let joined = words.join(" ");
-    let mut chars = joined.chars();
-    match chars.next() {
-        Some(first) => first.to_uppercase().collect::<String>() + chars.as_str(),
-        None => String::new(),
-    }
+    let words: Vec<String> = rest
+        .split('-')
+        .filter(|w| !w.is_empty())
+        .enumerate()
+        .map(|(index, word)| {
+            if let Some(caps) = all_caps(word) {
+                return caps;
+            }
+            if index > 0 {
+                return word.to_string();
+            }
+            let mut chars = word.chars();
+            match chars.next() {
+                Some(first) => first.to_uppercase().collect::<String>() + chars.as_str(),
+                None => String::new(),
+            }
+        })
+        .collect();
+    words.join(" ")
 }
 
 /// The number of a sub-chapter folder such as `s01-what-is-ownership`, or None.
@@ -156,12 +193,21 @@ fn steps_in(practice: &Path) -> Vec<Step> {
         .flatten()
         .map(|entry| entry.path())
         .filter(|path| path.is_dir() && (path.join("lesson.md").is_file() || path.join("Cargo.toml").is_file()))
+        .filter(|path| {
+            // Sub-chapter folders (sNN-...) have overviews too, but they are listed as sections, not steps.
+            // The homework folder has an overview as well, and is listed under Homework.
+            let name = path.file_name().unwrap_or_default().to_string_lossy().into_owned();
+            section_number(&name).is_none() && name != "homework"
+        })
         .map(|path| {
             let name = path.file_name().unwrap_or_default().to_string_lossy().into_owned();
+            let (has_tests, has_main) = scan_sources(&path);
             Step {
                 title: step_title(&name),
                 name,
                 has_code: path.join("Cargo.toml").is_file(),
+                has_tests,
+                has_main,
                 path: path.to_string_lossy().into_owned(),
             }
         })
@@ -169,4 +215,28 @@ fn steps_in(practice: &Path) -> Vec<Step> {
 
     steps.sort_by(|a, b| a.name.cmp(&b.name));
     steps
+}
+
+/// Whether a step's Rust sources contain a test, and whether they contain a main function. Both are read from the files on disk.
+fn scan_sources(step: &Path) -> (bool, bool) {
+    let mut tests = false;
+    let mut main = false;
+    let mut pending = vec![step.join("src"), step.join("tests")];
+    while let Some(dir) = pending.pop() {
+        let Ok(entries) = fs::read_dir(&dir) else {
+            continue;
+        };
+        for entry in entries.flatten() {
+            let p = entry.path();
+            if p.is_dir() {
+                pending.push(p);
+            } else if p.extension().is_some_and(|e| e == "rs") {
+                if let Ok(text) = fs::read_to_string(&p) {
+                    tests |= text.contains("#[test]");
+                    main |= text.contains("fn main(");
+                }
+            }
+        }
+    }
+    (tests, main)
 }

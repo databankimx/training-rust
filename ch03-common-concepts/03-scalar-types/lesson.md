@@ -94,7 +94,7 @@ It depends on how the program was compiled:
 
 * **In debug builds** (the ones the runner builds, and the ones you'll use while you're learning),
   Rust checks for overflow. If it happens, the program panics: it stops with an error.
-* **In release builds** (the optimised ones, built with `cargo build --release`), Rust doesn't check.
+* **In release builds** (the optimized ones, built with `cargo build --release`), Rust doesn't check.
   Instead, the value wraps around. 256 becomes 0, and 257 becomes 1.
 
 Relying on the wrap-around is considered an error, even though it happens. If you want to deal with

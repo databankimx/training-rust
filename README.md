@@ -1,253 +1,274 @@
-# Rust Training
+# DataBank IMX - Rust Developer Training
 
-A self-teaching Rust course. Each lesson explains one idea, shows the expected output,
-and gives you a short quiz. Most lessons also have a small Rust program that you can
-edit and run from the lesson runner, a desktop app that sits alongside the lessons.
+## License and Support
 
-The lessons follow the first three chapters of
-[The Rust Programming Language](https://doc.rust-lang.org/book/). The lessons are written
-in our own words, and the Rust Book is the place to go for more detail. The book's text
-belongs to its authors, Steve Klabnik and Carol Nichols, with Chris Krycho and the Rust
-community. An offline copy (EPUB) is in the `textbook` folder.
+This repository is provided under the [MIT License](LICENSE). You are free to use, copy, modify, merge, publish, distribute, sublicense, and/or sell the materials in this repository, subject to the terms of that license.
+
+This repository is provided for training and reference purposes only. DataBank IMX does not provide warranties, guarantees, maintenance, troubleshooting, implementation assistance, or technical support for this code or its use. Use it in any way permitted by the MIT License, but you are responsible for evaluating, adapting, testing, and supporting any use of it in your own environment.
 
 ---
 
-## Contents
+## What is this repository for?
 
-- [What you need](#what-you-need)
-- [Set up the lesson runner](#set-up-the-lesson-runner)
-- [Run the lesson runner](#run-the-lesson-runner)
-- [Using the runner](#using-the-runner)
-- [Repository layout](#repository-layout)
-- [Writing a lesson](#writing-a-lesson)
-- [Troubleshooting](#troubleshooting)
+- Rust developer training curriculum for DataBank IMX
+- Chapter-by-chapter lessons, quizzes, and code samples covering the Rust language from first steps through concurrency, async, and a multithreaded web server, based on *The Rust Programming Language* (the Brown University edition)
+- A final project: a calculator built in stages, with a core track and a bonus track, each with a worked example
+- Each lesson explains one idea, shows the expected output, and includes a short quiz. Most lessons also include a small Rust program that you can edit and run
+- Includes a Tauri-based lesson runner for navigating, reading, and running lessons interactively
 
 ---
 
-## What you need
+## About
 
-Install these before you start. The lesson runner is built on Windows, and the
-instructions below are for Windows. The lessons themselves work on Linux and macOS, and
-their commands are noted where they differ.
-
-| Tool | Why | How to install (Windows) |
-|---|---|---|
-| **Rust** (rustup, rustc, cargo) | Builds and runs the lesson programs | `winget install Rustlang.Rustup` |
-| **C++ build tools** | The Rust linker on Windows | `winget install Microsoft.VisualStudio.2022.BuildTools`, then choose *Desktop development with C++* |
-| **Node.js** (includes npm) | Builds the lesson runner | `winget install OpenJS.NodeJS.LTS` |
-| **VS Code** | Where you read and edit the code | `winget install Microsoft.VisualStudioCode` |
-
-In VS Code, install the **rust-analyzer** extension (publisher `rust-lang`). It checks your
-code as you type.
-
-To confirm Rust is installed, open a new terminal and run:
-
-```
-rustc --version
-cargo --version
-```
-
-Each command should print a version number and a date. The lesson
-[Installing Rust](ch01-intro/practice/01-installation/lesson.md) covers this in detail.
+- **Author:** [Scott McLean](mailto:smclean@databankimx.com)
+- **Purpose:** Internal developer training curriculum for DataBank IMX
 
 ---
 
-## Set up the lesson runner
+## DataBank Responsibilities for Custom Code
 
-The runner is in the `lesson-runner` folder. It's a Tauri app, which means a Rust back
-end with a web-style front end. You only need to do the setup steps once, and again if
-you move the repository to a new folder.
+All DataBank employees - including those working with AI-assisted tools - are bound by the [Development Rules of Engagement](development-rules-of-engagement.md). That document defines the rules for quoting, approving, developing, reviewing, scanning, storing, and delivering custom code for client work.
 
-### 1. Install the runner's packages
+Key obligations that apply to everyone on every custom code engagement:
 
-Open a terminal in the `lesson-runner` folder and run:
+- **You own the code you deliver.** This applies equally to hand-written code, AI-assisted code, and AI-generated code. "The AI wrote it" is not an acceptable explanation for a production issue, a failed review, a security finding, or a support problem.
+- **Code must be reviewed before delivery.** Review is interactive and must confirm that the code works, meets DataBank standards, is maintainable, and that the developer understands it well enough to explain, debug, and maintain it. Polished or well-formatted output - including AI-generated output - is not evidence of correctness.
+- **Code must be in source control before delivery.** All custom code must be committed to the appropriate DataBank GitHub Enterprise repository before it is delivered to a client, regardless of whether the client receives source code, compiled binaries, or deployed functionality.
+- **CI scanning must pass before delivery.** Required checks are the standards policy scan, SonarQube, and Snyk. A passing local run is not a substitute.
+- **All third-party dependencies must be license-vetted.** The license must permit closed-source commercial use. Copyleft or unclear licensing must be escalated before use. Dependencies must not be added simply because an AI tool suggested them.
+- **Only approved AI tools may be used.** Use only IT-approved tools through company accounts. All data entered into AI systems must be treated as confidential by default.
+- **Custom code is billable work.** Code must be tied to an approved quote or engagement before commitment or delivery. Development quotes require approval from the Development Director or delegated development leadership before being sent externally.
+- **Exceptions require explicit approval.** Time pressure alone is not a reason to bypass quote approval, source control, review, or CI scanning.
 
+See the [Development Rules of Engagement](development-rules-of-engagement.md) for the full policy, including billing and quoting rules, source-code delivery rules, the delivery readiness checklist, and the exception process.
+
+---
+
+## Textbook reference
+
+*The Rust Programming Language* - Steve Klabnik and Carol Nichols, with contributions from Chris Krycho and the Rust community - No Starch Press
+
+Textbook resources:
+- [The Rust Programming Language, online](https://doc.rust-lang.org/book/) (free, from the Rust project)
+- [Brown University edition](https://rust-book.cs.brown.edu/) (the edition this course follows, with extra quizzes and diagrams)
+- An offline copy (EPUB) is in the `textbook` folder
+
+### Why The Rust Programming Language?
+
+The Rust Book is the official introduction to the language, and it's written for developers who already know how to program. It covers ownership, which is the idea that sets Rust apart, and then moves on to the tools needed for real projects: error handling, generics, testing, concurrency, async, and a final project that builds a web server. This course follows the book's chapters in order, and adds lessons, quizzes, and homework that check understanding of each one.
+
+---
+
+## Setup and requirements
+
+- Rust 1.85 or later, installed with rustup (the course uses the 2024 edition)
+- Node.js LTS, which builds the lesson runner
+- The C++ build tools on Windows, which Rust uses for linking. Visual Studio with the *Desktop development with C++* workload also provides them, so you only need the Build Tools if Visual Studio isn't installed
+- VS Code with the rust-analyzer extension (recommended), or any editor you prefer
+
+See [QUICKSTART.md](QUICKSTART.md) for a step-by-step guide that sets up everything the lesson runner needs, and tells you how to check that each step worked.
+
+### Quick start
+
+From the repository root, in PowerShell:
+
+```pwsh
+powershell -ExecutionPolicy Bypass -File .\setup.ps1
 ```
+
+The script checks for Rust, the C++ build tools, and Node.js. It installs the lesson runner's packages, and copies the browser libraries the runner needs into place. It's safe to run more than once.
+
+Then start the lesson runner:
+
+```pwsh
 cd lesson-runner
-npm install
-```
-
-npm downloads the packages the runner needs. This takes a minute or two. When it finishes,
-the last line should be the number of packages added, with no errors.
-
-### 2. Add the Markdown renderer
-
-The lessons are written in Markdown, and the runner uses a small library called `marked`
-to display them. Install it, then copy it into the runner's `src` folder:
-
-```
-npm install marked
-mkdir src\vendor
-copy node_modules\marked\lib\marked.esm.js src\vendor\marked.js
-```
-
-The `copy` command prints `1 file(s) copied.` If the file is in a different place, run
-`dir node_modules\marked\lib` to find it, and copy that file instead.
-
-> **Linux and macOS:** use `mkdir -p src/vendor` and
-> `cp node_modules/marked/lib/marked.esm.js src/vendor/marked.js`.
-
-### 3. Check the layout
-
-After setup, `lesson-runner\src\vendor\marked.js` should exist. If it doesn't, the Lesson
-tab will not show any lessons, and the browser console will say that the module cannot be
-found.
-
----
-
-## Run the lesson runner
-
-From the `lesson-runner` folder, run:
-
-```
 npm run tauri dev
 ```
 
-The first run takes several minutes, because Tauri and its Rust dependencies are compiled
-for the first time. Later runs are much faster. When it's ready, a window titled
-**lesson-runner** opens, with the chapters on the left.
+The first start takes several minutes, because Rust compiles the runner and its dependencies. Later starts are much faster.
 
-The terminal keeps running while the window is open. To close the runner, close its
-window. If the terminal is still busy afterwards, press **Ctrl+C** in it.
+### Libraries used by the course
+
+| Library | Where | Purpose | Install |
+|---|---|---|---|
+| Rust toolchain (rustc, cargo) | Lessons and runner | Builds and runs every lesson program | `winget install Rustlang.Rustup` |
+| `tauri` 2 and `tauri-plugin-opener` | Lesson runner (`lesson-runner/src-tauri`) | The desktop window and the link opener | Installed by `cargo` from `Cargo.toml` |
+| `serde`, `serde_json`, `open` | Lesson runner | Data handling, and opening links in the browser | Installed by `cargo` from `Cargo.toml` |
+| `marked` | Lesson runner | Converts lesson Markdown to HTML | `npm install` in `lesson-runner` (copied to `src/vendor` by the setup script) |
+| `@viz-js/viz` | Lesson runner | Draws the diagrams in lessons, using Graphviz | `npm install` in `lesson-runner` (copied to `src/vendor` by the setup script) |
+| `@tauri-apps/cli` | Lesson runner | Starts the runner in development mode | `npm install` in `lesson-runner` |
+| `trpl` 0.3.0 | Chapters 17 to 21 | The helper crate the async and web server chapters use. It downloads from crates.io on the first run | Installed by `cargo` from each lesson's `Cargo.toml` |
+
+All of these are under permissive licenses (MIT, Apache 2.0, or both), and can be used in closed-source work under the Development Rules of Engagement.
+
+**Vendored files.** The setup script copies `marked` and `@viz-js/viz` into `lesson-runner/src/vendor`. Keep their license and notice files with them.
+
+The full policy is in [Development Rules of Engagement](development-rules-of-engagement.md), section 12.
+
+### VS Code
+
+Install the **rust-analyzer** extension (publisher `rust-lang`). It checks your code as you type, and shows the same errors the compiler does. The setup script installs it when VS Code's `code` command is on your PATH.
 
 ---
 
-## Using the runner
+## Running the training
 
-### Choosing a lesson
+### Lesson Runner
 
-* The **chapter list** at the top left shows each chapter, such as *Ch01 · Intro*. Click a
-  chapter to show its steps.
-* The **steps list** below it shows the steps in the selected chapter. Click a step to open
-  it.
-* Drag the edges of the panes to resize them. You can drag the sidebar's right edge, the
-  boundary between the chapter list and the step list, and the boundary above the Source
-  and Lesson pane.
+The lesson runner is a desktop application, built with Tauri, which has a Rust back end and a web-style front end. It lets you browse chapters, read lessons, answer quizzes, and run the code in each step.
 
-### Reading a lesson
+Setup is in [QUICKSTART.md](QUICKSTART.md). Once it's set up, start the runner from the `lesson-runner` folder:
 
-Click the **Lesson** tab, in the lower pane, to read the lesson. Lessons include
-expected outputs and quizzes. Links to web pages open in your default browser.
+```pwsh
+npm run tauri dev
+```
 
-### Working through a quiz
+#### Finding lessons
 
-Each quiz asks one question.
+The chapter list on the left shows each chapter, such as *Ch01 · Intro*. Click a chapter to show its steps, then click a step to open it.
 
-* Choose an answer, or type one in short-answer questions, then click **Check answer**.
-* A wrong answer shows an explanation and a **Try again** button.
-* **Show answer** reveals the answer. Once you've shown an answer, that question is locked,
-  as in the Rust Book's quizzes.
-* Your answers are kept when you move between lessons.
+* Chapters are listed in order. The final project comes after Chapter 21.
+* Each step is one folder. Steps with a Cargo project have code you can run.
+* Homework appears under its chapter, in its own list.
+* Drag the edges of the panes to resize them.
 
-### Running a program
+#### Reading and running a step
 
-Click the **Source** tab to see the code. Then:
+* The **Lesson** tab shows the step's lesson, with quizzes. Answer a quiz, then click **Check answer**. **Show answer** reveals it, and locks the question, as in the Rust Book's quizzes.
+* The **Source** tab shows the step's code. The Source pane is an editor. Edits are kept in the runner until you click **Reset**, and nothing is written to the repository.
+* Press **Run** (or F5) to run the step. Output appears in the Output pane. Lines starting with `Compiling`, `Finished`, and `Running` are status messages from Cargo, not errors.
+* Press **Test** to run the step's tests, for steps that have them.
+* If a program asks for input, type in the input box under the Output pane, then press Enter or click **Send**.
+* Press **Escape**, or click **Stop**, to stop a program that is still running. While a program runs, the Run button becomes Stop.
+* A step with no code has a read-only Source pane, and Run is disabled.
 
-* Press **F5**, or click **Run**, to run the step's program.
-* The **Output** pane shows what the program prints. Lines starting with `Compiling`,
-  `Finished`, and `Running` are status messages from Cargo, not errors.
-* If the program asks for input, type in the box at the bottom of the Output pane, then
-  press Enter or click **Send**.
-* Press **Escape**, or click **Stop**, to stop a program that is still running.
+#### Homework and spoilers
 
-### Editing code
+Homework steps ask you to write your own program first. The Run button stays disabled until you choose **Show example (spoiler)**. Once you do, the example opens, and Run is available. Try the exercise before you reveal the example, since most of the learning happens while you're stuck.
 
-The Source pane is an editor. Change the code, then press **F5** to run your changes. The
-runner runs a copy of the step, so the files in the repository are not changed. Click
-**Reset** to go back to the original code. A **modified** label shows when your code
-differs from the file on disk.
+#### Keyboard shortcuts
 
-If a step has no code, its Source pane is read-only and the Run button is disabled.
-
-### Other buttons
-
-| Control | What it does |
+| Key | Action |
 |---|---|
-| Sun and moon switch | Switches between dark and light themes. The lesson window follows the main window. |
-| Copy icon (Output) | Copies the output |
-| Copy icon (Source or Lesson) | Copies the text of the tab you are on |
-| Pop-out icon | Opens the lesson in its own window, so you can read it while you code |
-| Dock icon | Returns a popped-out lesson to the main window |
+| F5 | Run the current step |
+| Escape | Stop a running program, or cancel the input |
+
+#### Troubleshooting
+
+* **The runner window doesn't open, and the terminal shows an npm error:** run `npm install` again in `lesson-runner`. Check that Node.js is installed with `node --version`.
+* **The Lesson tab shows no lessons, and the browser console says a module cannot be found:** the vendored browser libraries are missing. Run the setup script again, or see step 3 of QUICKSTART.md.
+* **`rustc` or `cargo` is not recognized:** close the terminal and open a new one. If that doesn't help, restart your computer.
+* **The first build is very slow:** this is normal. Rust compiles the runner and its dependencies once.
+* **Run shows a linker error:** check that the C++ workload is installed, either in Visual Studio or with the Build Tools, with *Desktop development with C++* chosen.
+
+The runner's source code is in the `lesson-runner/` folder.
+
+### Running lessons directly
+
+Each step with code is a Cargo project. You can run one from a terminal, in the step's folder:
+
+```pwsh
+cd ch01-intro\02-hello-world
+cargo run
+```
+
+Or open the folder in VS Code and use the terminal.
 
 ---
 
-## Repository layout
+## Writing lessons
+
+To add or change lessons, see [AUTHORING.md](AUTHORING.md). It covers how the runner finds chapters, sections, steps, and homework, how to write a lesson and its quizzes, how to build a homework exercise with a spoiler, and the checks to run before a change is committed.
+
+---
+
+## Repository structure
 
 ```
 training-rust/
-├── ch01-intro/                  Chapter 1: Getting started
-│   ├── 01-installation/         A lesson with no code
-│   ├── 02-hello-world/          A lesson with a Cargo project
-│   └── 03-hello-cargo/          A lesson with a Cargo project
-├── lesson-runner/               The lesson runner (Tauri app)
-│   ├── src/                     Front end: HTML, CSS, JavaScript
-│   └── src-tauri/               Back end: Rust
-├── textbook/                    Offline copy of the Rust Book (EPUB)
-└── README.md                    This file
+|- ch01-intro/                   - Chapter 1: getting started
+|- ch02-guessing-game/           - Chapter 2: a guessing game
+|- ch03-common-concepts/         - Chapter 3: variables, types, functions, control flow
+|- ch04-ownership/               - Chapter 4: ownership, borrowing, slices
+|- ch05-structs/                 - Chapter 5: structs
+|- ch06-enums/                   - Chapter 6: enums and pattern matching
+|- ch07-modules/                 - Chapter 7: packages, crates, and modules
+|- ch08-collections/             - Chapter 8: vectors, strings, hash maps
+|- ch09-errors/                  - Chapter 9: error handling
+|- ch10-generics/                - Chapter 10: generics, traits, and lifetimes
+|- ch11-testing/                 - Chapter 11: writing automated tests
+|- ch12-io-project/              - Chapter 12: a command-line search tool
+|- ch13-functional/              - Chapter 13: closures and iterators
+|- ch14-cargo/                   - Chapter 14: more about Cargo and crates.io
+|- ch15-smart-pointers/          - Chapter 15: smart pointers
+|- ch16-concurrency/             - Chapter 16: fearless concurrency
+|- ch17-async/                   - Chapter 17: async and await
+|- ch18-oop/                     - Chapter 18: object-oriented features
+|- ch19-patterns/                - Chapter 19: patterns and matching
+|- ch20-advanced/                - Chapter 20: advanced features
+|- ch21-web-server/              - Chapter 21: final project, a multithreaded web server
+|- final-project/                - The calculator final project, with homework
+|- lesson-runner/                - Tauri lesson runner
+|  |- src/                       - Front end: HTML, CSS, JavaScript
+|  |- src-tauri/                 - Back end: Rust
+|- textbook/                     - Offline copy of the Rust Book (EPUB)
+|- setup.ps1                     - Sets up everything the lesson runner needs
+|- QUICKSTART.md                 - Step-by-step setup guide
 ```
 
-Each chapter folder holds its steps. Each step is one folder, and every step has a
-`lesson.md`. A step that has code also has a `Cargo.toml` and a `src/main.rs`.
-Chapters and steps appear in the runner in the order of their names, so prefix step
-folders with numbers, such as `01-installation`.
+Each chapter folder holds its sections, and each section holds its steps. A step is a folder with a `lesson.md`, and a Cargo project if it has code. Steps appear in the order of their names, so the number prefix keeps them in order.
+
+### Part I - The Rust Book, Chapters 1 to 21
+
+| Chapter | Topic |
+|---|---|
+| `ch01-intro` | Getting started: installing Rust, Hello, World, and Cargo |
+| `ch02-guessing-game` | Programming a guessing game |
+| `ch03-common-concepts` | Variables, data types, functions, comments, and control flow |
+| `ch04-ownership` | Ownership, references and borrowing, and slices |
+| `ch05-structs` | Defining and using structs |
+| `ch06-enums` | Enums, `match`, and `if let` |
+| `ch07-modules` | Packages, crates, and modules |
+| `ch08-collections` | Vectors, strings, and hash maps |
+| `ch09-errors` | Errors with `panic!`, `Result`, and when to use each |
+| `ch10-generics` | Generic types, traits, and lifetimes |
+| `ch11-testing` | Writing and running automated tests |
+| `ch12-io-project` | A command-line search tool, built step by step |
+| `ch13-functional` | Closures and iterators |
+| `ch14-cargo` | Cargo profiles, workspaces, and publishing crates |
+| `ch15-smart-pointers` | `Box`, `Rc`, `RefCell`, and reference cycles |
+| `ch16-concurrency` | Threads, message passing, and shared state |
+| `ch17-async` | Futures, streams, and async programming |
+| `ch18-oop` | Object-oriented features, trait objects, and the state pattern |
+| `ch19-patterns` | Every place patterns can be used, and pattern syntax |
+| `ch20-advanced` | Unsafe Rust, advanced traits and types, function pointers, and macros |
+| `ch21-web-server` | A multithreaded web server, built with a thread pool |
+
+### Part II - Final Project
+
+| Folder | Topic |
+|---|---|
+| `final-project/` | A calculator, built in two tracks: a core with precedence, parentheses, and a REPL, and bonus items for exponents, `sqrt`, and extra brackets. Each track has a worked example |
 
 ---
 
-## Writing a lesson
+## Authorship note
 
-To add a step:
+This training curriculum was developed for internal use at DataBank. As with the other training repositories, I used generative AI in places for code review, cleanup, and turning rough notes into readable documentation.
 
-1. Create a folder in the chapter's folder, named with a number and a short name, such as
-   `04-variables`.
-2. Add a `lesson.md`. Write it for a complete beginner: explain each command, show the
-   expected output, and say what to do if something goes wrong.
-3. If the step has code, add a Cargo project in that folder: a `Cargo.toml` and a
-   `src/main.rs`. Use `edition = "2024"`.
-
-Quizzes go in the lesson as a fenced block, using four backticks so that code can appear
-inside them:
-
-``````
-````quiz
-Which keyword declares a variable in Rust?
-○ var
-→ Rust doesn't have var. It's a keyword from other languages.
-◉ let
-→ Yes. `let` creates a variable.
-````
-``````
-
-* Lines starting with `○` are wrong choices, and lines starting with `◉` are the right
-  choice.
-* A line starting with `→` explains the choice above it.
-* For a short-answer question, give the answer in square brackets, such as `[ main ]`.
-  Use `|` to accept more than one answer.
+~ Scott McLean, 2026
 
 ---
 
-## Troubleshooting
+## Version history
 
-**The runner window doesn't open, and the terminal shows a `npm` error.**
-Run `npm install` again in `lesson-runner`. If it still fails, check that Node.js is
-installed with `node --version`.
-
-**The Lesson tab says a module cannot be found.**
-The Markdown renderer is missing. Repeat step 2 of the setup.
-
-**`rustc` or `cargo` is not recognized.**
-Close the terminal and open a new one. If that doesn't help, restart your computer. The
-installer adds Rust to your path, and an open terminal doesn't see the change.
-
-**The first build is very slow.**
-This is normal. Rust compiles the runner and its dependencies the first time you run it.
-
-**Run does nothing, or the Output pane shows a linker error.**
-Check that the C++ build tools are installed, with *Desktop development with C++* chosen.
-
-**A step shows the wrong code after I edited it.**
-Click **Reset** in the Source pane. Your edits are only held in the runner while it's open,
-and Reset returns the step to the file on disk.
+| Date | Changes |
+|---|---|
+| 10/28/2026 | Initial version: lessons and quizzes for chapters 1 to 21 of The Rust Programming Language, the final calculator project with homework, the Tauri lesson runner, QUICKSTART.md, and setup.ps1 |
 
 ---
 
-*Rust Training is a course for beginners. Corrections and suggestions are welcome.*
+## Contact
+
+- [Scott McLean](mailto:smclean@databankimx.com)
+- [Dev Team](mailto:development@databankimx.com)

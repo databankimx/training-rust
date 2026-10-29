@@ -18,7 +18,7 @@ data can only be reached through its owner. References can create temporary alia
 those aliases are not used while the data is being changed.
 
 This section probably felt like it described more of what Rust *cannot* do than what it *can* do. That's intentional.
-Rust lets you use pointers without a garbage collector, while avoiding undefined behaviour. Understanding these rules now
+Rust lets you use pointers without a garbage collector, while avoiding undefined behavior. Understanding these rules now
 will help you avoid frustration with the compiler later, and it will help you read the error messages it gives you.
 
 ---

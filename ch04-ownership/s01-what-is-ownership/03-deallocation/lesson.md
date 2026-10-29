@@ -10,7 +10,7 @@ rule that ownership is built on.
 
 Imagine that Rust let the programmer free heap memory whenever they wanted, with a `free` function. Manual
 management like that causes bugs easily. For example, a program could read through a pointer to memory that
-has already been freed. The previous step showed that reading freed memory is undefined behaviour.
+has already been freed. The previous step showed that reading freed memory is undefined behavior.
 
 Rust doesn't allow manual freeing, so it needs another answer to the question *when is heap memory freed?*
 
@@ -61,7 +61,7 @@ fn main() {
 This fragment prints nothing. It shows what happens to the ownership of the box.
 
 Both `a` and `b` are now bound to the same box. The first rule would free the heap memory once on behalf of `a`,
-and again on behalf of `b`. Freeing the same memory twice is undefined behaviour, so the rule isn't safe as stated.
+and again on behalf of `b`. Freeing the same memory twice is undefined behavior, so the rule isn't safe as stated.
 
 Both variables point to the same heap memory, and the rule doesn't say which of them is responsible for
 freeing it:

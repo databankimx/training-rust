@@ -1,6 +1,6 @@
 // A small Rust tokenizer for the Source and Lesson panes. It is not a parser:
 // it recognizes comments, strings, numbers, keywords, and identifiers well
-// enough to colour code the way Visual Studio does.
+// enough to color code the way Visual Studio does.
 
 const KEYWORDS = new Set([
   "as", "async", "await", "const", "crate", "dyn", "enum", "extern", "false",
@@ -38,9 +38,9 @@ const TOKEN = new RegExp(
 
 function escapeHtml(text) {
   return text
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;");
 }
 
 function classifyWord(word, previous, next) {

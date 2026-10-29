@@ -160,7 +160,7 @@ error[E0594]: cannot assign to `*n`, which is behind a `&` reference
 Given the stated purpose of the function, which of the following would be the most idiomatic fix to the program?
 
 ○ Return a new `Vec<f32>` that contains the rounded values
-→ Not quite. The function is supposed to round the vector in place, so returning a copy is not the intended behaviour.
+→ Not quite. The function is supposed to round the vector in place, so returning a copy is not the intended behavior.
 ○ Change the parameter to `mut v: Vec<f32>`
 → Not quite. This takes ownership of the vector, which the caller would then lose.
 ◉ Change the parameter to `v: &mut Vec<f32>`

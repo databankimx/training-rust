@@ -1,0 +1,6 @@
+[package]
+name = "loops_and_iterators_timed"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]

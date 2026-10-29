@@ -39,7 +39,7 @@ Borrowing a variable temporarily removes some of its permissions, and the borrow
 
 The sample uses an immutable borrow, and it's accepted, because the borrow is not used after the string is changed.
 
-The book shows several examples that the borrow checker rejects, and each is worth recognising:
+The book shows several examples that the borrow checker rejects, and each is worth recognizing:
 
 * Mutating through an immutable reference is rejected. The compiler reports that you can't borrow `*s_ref` as mutable,
   because it's behind a `&` reference.

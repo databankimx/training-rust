@@ -1,0 +1,5 @@
+cargo test
+cargo test add
+cargo test one_hundred
+cargo test -- --test-threads=1
+cargo test -- --show-output

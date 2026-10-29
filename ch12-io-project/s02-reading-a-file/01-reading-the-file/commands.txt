@@ -1,0 +1,3 @@
+cargo run -- test poem.txt
+cargo run -- nobody poem.txt
+cargo run -- test missing.txt

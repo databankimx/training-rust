@@ -216,7 +216,7 @@ goes into `target\release`, and it's the one you would give to someone else.
 | `cargo run` | Builds the program if needed, then runs it |
 | `cargo check` | Checks the code, without making a program |
 | `cargo build` | Builds the program, without running it |
-| `cargo build --release` | Builds an optimised program for release |
+| `cargo build --release` | Builds an optimized program for release |
 
 ---
 

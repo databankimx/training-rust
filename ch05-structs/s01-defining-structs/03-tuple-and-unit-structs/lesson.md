@@ -50,8 +50,8 @@ A struct with no fields at all is a *unit-like struct*. It's declared with the k
 struct AlwaysEqual;
 ```
 
-It holds no data, which seems pointless until you want to attach behaviour to a type. Traits, which you'll meet in Chapter 10, let you
-implement behaviour on any type, including a unit-like struct with no data at all. The sample creates one, `_subject`. The underscore
+It holds no data, which seems pointless until you want to attach behavior to a type. Traits, which you'll meet in Chapter 10, let you
+implement behavior on any type, including a unit-like struct with no data at all. The sample creates one, `_subject`. The underscore
 tells Rust it's deliberately unused, so there's no warning.
 
 ---

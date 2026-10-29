@@ -54,7 +54,7 @@ The `if` and `else if` at the end of the loop decide the punctuation:
 * The last gift on the first day gets a full stop, because there's nothing else in that verse.
 * The last gift on every other day starts with "and" and ends with a full stop.
 
-The `capitalise` function turns the first letter of each gift into a capital, so `two turtle doves`
+The `capitalize` function turns the first letter of each gift into a capital, so `two turtle doves`
 prints as `Two turtle doves`.
 
 ---

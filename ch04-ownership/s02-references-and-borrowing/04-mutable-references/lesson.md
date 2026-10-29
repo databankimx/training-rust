@@ -162,7 +162,7 @@ fn give_and_take(v: &Vec<i32>, n: i32) -> i32 {
 ```
 
 Normally the compiler rejects this function, because `v` is a shared reference, but `push` needs a mutable one. Assume
-the compiler did not reject it. Which of these programs could cause undefined behaviour if executed?
+the compiler did not reject it. Which of these programs could cause undefined behavior if executed?
 
 ○ `let v = vec![1, 2, 3]; let v2 = &v; give_and_take(&v, 4); println!("{}", v2[0]);`
 → Not quite. A reference to the whole vector `v` is not made invalid by changing the vector's contents, so reading through `v2` is safe.
@@ -170,7 +170,7 @@ the compiler did not reject it. Which of these programs could cause undefined be
 → Not quite. This program never uses an invalidated reference. It only prints a plain number that was returned.
 ◉ `let v = vec![1, 2, 3]; let n = &v[0]; give_and_take(&v, 4); println!("{}", n);`
 → Yes. `push` can reallocate the vector's storage, so `n`, which points at an element, can end up pointing at freed memory.
-○ None of these programs could cause undefined behaviour
+○ None of these programs could cause undefined behavior
 → Not quite. The third program reads a reference that the push can invalidate.
 ````
 

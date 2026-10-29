@@ -1,12 +1,12 @@
 ## Ownership versus Garbage Collection
 
 This chapter introduced a lot of new ideas: ownership, borrowing, slices, the stack and the heap, pointers, and undefined
-behaviour. Before moving on, this recap reviews the main ideas, and puts ownership in context.
+behavior. Before moving on, this recap reviews the main ideas, and puts ownership in context.
 
 Most languages you may know use a *garbage collector*. It runs alongside the program, finds memory that the program can
 no longer reach, and frees it. Python, JavaScript, Java, and Go all work this way.
 
-A garbage collector has real benefits. It prevents undefined behaviour, such as using freed memory, which can happen in
+A garbage collector has real benefits. It prevents undefined behavior, such as using freed memory, which can happen in
 C and C++. It also means the compiler doesn't need a complex type system to check for it, as Rust does. But there are
 two drawbacks. The first is performance: a garbage collector adds overhead while the program runs. The second is less
 obvious: **garbage collection can be unpredictable**, and it can hide what data a variable is connected to.
@@ -47,7 +47,7 @@ the same list, so Python frees it only once all three are out of scope, which is
 
 The second question matters more. What are the words in `d`? Because `get_words` returns a reference to the list inside
 `d`, the change to `d2` also changes `d`. So `d` now holds `["Hello", "world"]`. Nothing in the code makes that obvious.
-This problem is not unique to Python. The underlying behaviour is pointers, and most languages have them. What differs is
+This problem is not unique to Python. The underlying behavior is pointers, and most languages have them. What differs is
 how visible they are.
 
 *The Python examples are for comparison only, and aren't Rust programs. They're adapted from the Brown University edition of The Rust Programming Language.*

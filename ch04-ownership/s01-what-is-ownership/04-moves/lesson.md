@@ -54,7 +54,7 @@ This line is a fragment. It can't be run on its own, because the program it belo
 error is shown below.
 
 If Rust allowed this, `first` would point to memory that was freed when `add_suffix` took ownership. Reading it
-would be undefined behaviour, which is the kind of memory bug that Rust exists to prevent. So Rust refuses to
+would be undefined behavior, which is the kind of memory bug that Rust exists to prevent. So Rust refuses to
 compile the program, with an error like this:
 
 ```text
@@ -242,13 +242,13 @@ clone `first` and pass the copy into `add_suffix`, so that the original can stil
 Which of the following is NOT a kind of undefined behavior?
 
 ○ Using a pointer that points to freed memory
-→ This is undefined behaviour. Reading or writing freed memory is exactly the kind of bug Rust prevents.
+→ This is undefined behavior. Reading or writing freed memory is exactly the kind of bug Rust prevents.
 ○ Freeing the same memory a second time
-→ This is undefined behaviour. Rust would free the memory twice, once on behalf of each owner.
+→ This is undefined behavior. Rust would free the memory twice, once on behalf of each owner.
 ○ Using a non-boolean value as an `if` condition
-→ This is undefined behaviour. Rust doesn't define what an `if` does with a value that isn't `true` or `false`.
+→ This is undefined behavior. Rust doesn't define what an `if` does with a value that isn't `true` or `false`.
 ◉ Having a pointer to freed memory in a stack frame
-→ Yes, this is the one that isn't undefined behaviour. It's safe to hold a pointer to freed memory, as long as you don't use it.
+→ Yes, this is the one that isn't undefined behavior. It's safe to hold a pointer to freed memory, as long as you don't use it.
 ````
 
 ````quiz
@@ -309,7 +309,7 @@ fn move_a_box(b: Box<i32>) {
 ```
 
 Below are four snippets that Rust rejects. Imagine that Rust allowed them to compile and run. For each one,
-would it cause undefined behaviour?
+would it cause undefined behavior?
 
 ```rust
 let b = Box::new(0);
@@ -317,11 +317,11 @@ let b2 = b;
 move_a_box(b);
 ```
 
-○ No, this doesn't cause undefined behaviour
-◉ Yes, this causes undefined behaviour
+○ No, this doesn't cause undefined behavior
+◉ Yes, this causes undefined behavior
 → Yes. `b` is moved into `b2`, then moved again into `move_a_box`. Ownership of the box would be freed twice.
 ---
-Would this cause undefined behaviour?
+Would this cause undefined behavior?
 
 ```rust
 let b = Box::new(0);
@@ -329,11 +329,11 @@ move_a_box(b);
 println!("{}", b);
 ```
 
-○ No, this doesn't cause undefined behaviour
-◉ Yes, this causes undefined behaviour
+○ No, this doesn't cause undefined behavior
+◉ Yes, this causes undefined behavior
 → Yes. `move_a_box` frees the box, and then `println!` reads `b` after it's been freed.
 ---
-Would this cause undefined behaviour?
+Would this cause undefined behavior?
 
 ```rust
 let b = Box::new(0);
@@ -341,11 +341,11 @@ move_a_box(b);
 let b2 = b;
 ```
 
-○ No, this doesn't cause undefined behaviour
-◉ Yes, this causes undefined behaviour
+○ No, this doesn't cause undefined behavior
+◉ Yes, this causes undefined behavior
 → Yes. `b` has been moved into `move_a_box`, which freed the box, and then `let b2 = b` uses it again.
 ---
-Would this cause undefined behaviour?
+Would this cause undefined behavior?
 
 ```rust
 let b = Box::new(0);
@@ -354,8 +354,8 @@ println!("{}", b);
 move_a_box(b2);
 ```
 
-◉ No, this doesn't cause undefined behaviour
-○ Yes, this causes undefined behaviour
+◉ No, this doesn't cause undefined behavior
+○ Yes, this causes undefined behavior
 → Yes, it's safe to read `b` here. Moving `b` into `b2` doesn't free the box. Only `move_a_box` frees it, and that happens after `println!`. Rust still rejects this program, but for a different reason.
 ````
 

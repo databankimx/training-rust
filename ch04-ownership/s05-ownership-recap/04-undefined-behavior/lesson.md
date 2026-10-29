@@ -1,7 +1,7 @@
-## Undefined Behaviour
+## Undefined behavior
 
-Ownership, borrowing, and slices all have one purpose: preventing undefined behaviour. This step connects the rules
-to the two kinds of undefined behaviour the chapter has been about.
+Ownership, borrowing, and slices all have one purpose: preventing undefined behavior. This step connects the rules
+to the two kinds of undefined behavior the chapter has been about.
 
 ---
 
@@ -62,7 +62,7 @@ two owners of the same heap data. The rule that prevents this is that references
 
 > **Why this is dangerous:** Freeing memory twice corrupts the allocator's own bookkeeping. The allocator may then hand the
 > same block to two different users, or write its bookkeeping into memory the program still controls. Attackers have used
-> double-frees to take control of a program's behaviour, which is why the rule above matters.
+> double-frees to take control of a program's behavior, which is why the rule above matters.
 
 ---
 
@@ -70,8 +70,8 @@ two owners of the same heap data. The rule that prevents this is that references
 
 The guarantee has two parts, and it's worth knowing both:
 
-* The borrow checker always rejects programs with undefined behaviour.
-* The borrow checker sometimes rejects programs without undefined behaviour, which are perfectly safe.
+* The borrow checker always rejects programs with undefined behavior.
+* The borrow checker sometimes rejects programs without undefined behavior, which are perfectly safe.
 
 In technical terms, the borrow checker is *sound* (it never accepts an unsafe program) and *incomplete* (it sometimes rejects
 a safe one). The step on fixing ownership errors showed how to handle the second case.
@@ -79,11 +79,11 @@ a safe one). The step on fixing ownership errors showed how to handle the second
 Two quiz questions show how to decide whether a rejected function is actually dangerous.
 
 The first function, `extract`, takes a reference to a box and moves the value out of it, then dereferences a box that is
-no longer owned. It would double-free on any input, so it *could* cause undefined behaviour.
+no longer owned. It would double-free on any input, so it *could* cause undefined behavior.
 
 The second function, `transfer_string`, mutably borrows two fields of a tuple through two functions, and then changes both.
 The borrow checker rejects it, because it can't tell that the two references always point to different fields. In this
-program they never overlap, so it *could not* cause undefined behaviour.
+program they never overlap, so it *could not* cause undefined behavior.
 
 ---
 
@@ -109,14 +109,14 @@ Select each of the following statements that is true about the kinds of programs
 These statements apply to programs that contain no `unsafe` code.
 
 ---
-Does the borrow checker always reject programs that have undefined behaviour?
+Does the borrow checker always reject programs that have undefined behavior?
 
 ○ False
-→ Not quite. The borrow checker is designed so that it always rejects programs with undefined behaviour.
+→ Not quite. The borrow checker is designed so that it always rejects programs with undefined behavior.
 ◉ True
-→ Yes. The borrow checker never accepts a program that could cause undefined behaviour.
+→ Yes. The borrow checker never accepts a program that could cause undefined behavior.
 ---
-Does the borrow checker sometimes reject programs that do not have undefined behaviour?
+Does the borrow checker sometimes reject programs that do not have undefined behavior?
 
 ○ False
 → Not quite. The borrow checker is incomplete, so it sometimes rejects safe programs, such as the examples in the fixing ownership errors step.
@@ -134,7 +134,7 @@ fn extract(b: &Box<i32>) -> i32 {
 }
 ```
 
-Imagine that the borrow checker did not reject this function. Could there be an input for which the function causes undefined behaviour?
+Imagine that the borrow checker did not reject this function. Could there be an input for which the function causes undefined behavior?
 
 ○ This function could NOT cause undefined behavior
 → Not quite. Moving the box out of a reference would give two owners of the same heap data, so it does cause a double-free.
@@ -162,7 +162,7 @@ fn transfer_string(strs: &mut (String, String)) {
 }
 ```
 
-Imagine that the borrow checker did not reject this function. Could there be an input for which the function causes undefined behaviour?
+Imagine that the borrow checker did not reject this function. Could there be an input for which the function causes undefined behavior?
 
 ◉ This function could NOT cause undefined behavior
 → Yes. The borrow checker rejects it because it can't see that `get_first` and `get_second` return references to different fields. They always do, so the function is safe.

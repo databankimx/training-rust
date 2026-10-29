@@ -34,13 +34,14 @@
           <div class="actions">
             <div class="theme-group" title="Light or dark theme">
               <span id="moon" class="theme-icon"></span>
-              <label class="theme-switch">
+              <label for="theme" class="theme-switch">
                 <input id="theme" type="checkbox" />
                 <span class="slider"></span>
               </label>
               <span id="sun" class="theme-icon"></span>
             </div>
             <button id="run" class="primary" disabled>&#9654; Run</button>
+            <button id="test" class="primary hidden" disabled>&#10003; Test</button>
           </div>
         </header>
 
@@ -48,8 +49,8 @@
           <div class="pane-bar">
             <span class="pane-label">OUTPUT</span>
             <span class="pane-actions">
-              <button id="copy-output" class="icon-button" title="Copy output"></button>
-              <button id="clear" class="link">Clear</button>
+              <button id="copy-output" class="icon-button" data-tip="Copy output" aria-label="Copy output"></button>
+              <button id="clear" class="icon-button" data-tip="Clear output" aria-label="Clear output"></button>
             </span>
           </div>
           <pre id="output" class="output"></pre>
@@ -70,8 +71,8 @@
             <span class="tabs-right">
               <span id="modified" class="modified hidden">modified</span>
               <button id="reset" class="link">Reset</button>
-              <button id="popout" class="icon-button" title="Open the lesson in its own window"></button>
-              <button id="copy-source" class="icon-button" title="Copy the text of this tab"></button>
+              <button id="popout" class="icon-button" data-tip="Open the lesson in its own window" aria-label="Open the lesson in its own window"></button>
+              <button id="copy-source" class="icon-button" data-tip="Copy the text of this tab" aria-label="Copy the text of this tab"></button>
             </span>
           </div>
 
@@ -85,7 +86,7 @@
             <pre id="gutter" class="gutter" aria-hidden="true"></pre>
             <div class="code-area">
               <pre id="highlight" class="highlight" aria-hidden="true"></pre>
-              <textarea id="editor" class="editor" spellcheck="false" wrap="off"></textarea>
+              <textarea aria-label="Editor" id="editor" class="editor" spellcheck="false" wrap="off"></textarea>
             </div>
           </div>
 

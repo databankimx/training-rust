@@ -1,0 +1,6 @@
+[package]
+name = "idioms_and_as"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]

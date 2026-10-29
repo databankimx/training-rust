@@ -70,6 +70,56 @@ html, body {
 
 .hidden { display: none !important; }
 
+/* Short messages, such as "Progress reset", that fade out by themselves. */
+.toast {
+  position: fixed;
+  bottom: 28px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 8px 18px;
+  border-radius: 4px;
+  background: var(--header);
+  color: #ffffff;
+  font-size: 13px;
+  pointer-events: none;
+  z-index: 1000;
+  opacity: 1;
+  transition: opacity 0.8s;
+}
+
+.toast.fade { opacity: 0; }
+
+/* The Run button becomes Stop while a program runs. The minimum width fits either label, so the button doesn't resize. */
+#run {
+  min-width: 6.5em;
+  text-align: center;
+}
+
+/* Tooltips for buttons and labels marked with data-tip. The browser's own title tooltip waits about a second, so these appear at once. */
+[data-tip] {
+  position: relative;
+}
+
+[data-tip]::after {
+  content: attr(data-tip);
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  padding: 3px 7px;
+  border-radius: 3px;
+  background: var(--header);
+  color: #ffffff;
+  font-size: 12px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 50;
+}
+
+[data-tip]:hover::after {
+  opacity: 1;
+}
+
 .app {
   display: flex;
   height: 100vh;
@@ -287,6 +337,11 @@ button.link:hover:not(:disabled) { color: var(--text); }
   gap: 4px;
 }
 
+.pane-left {
+  display: flex;
+  align-items: center;
+}
+
 .theme-group {
   display: flex;
   align-items: center;
@@ -383,6 +438,17 @@ button.link:hover:not(:disabled) { color: var(--text); }
 }
 
 .input-row label { color: var(--muted); }
+
+.command-pick {
+  max-width: 260px;
+  padding: 5px 8px;
+  background: var(--field);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  font: inherit;
+  font-size: 12px;
+}
 
 .input-row input {
   flex: 1;

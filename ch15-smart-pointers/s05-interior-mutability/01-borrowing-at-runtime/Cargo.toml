@@ -1,0 +1,6 @@
+[package]
+name = "borrowing_at_runtime"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]

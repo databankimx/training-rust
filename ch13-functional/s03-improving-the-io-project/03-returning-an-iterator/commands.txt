@@ -1,0 +1,3 @@
+cargo run -- body poem.txt
+IGNORE_CASE=1 cargo run -- to poem.txt
+cargo test

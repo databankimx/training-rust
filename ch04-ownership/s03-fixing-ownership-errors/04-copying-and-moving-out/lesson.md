@@ -43,7 +43,7 @@ reference. References are non-owning pointers, so Rust doesn't let you take owne
 ### Why is this unsafe?
 
 Imagine Rust allowed the move. Then `v` and `s` would both think they own "Hello world". When `s` is dropped, the string is
-freed. When `v` is dropped, the string is freed again. That's a **double-free**, which is undefined behaviour.
+freed. When `v` is dropped, the string is freed again. That's a **double-free**, which is undefined behavior.
 
 The diagram shows the state after the rejected move, if it had been allowed:
 
@@ -147,7 +147,7 @@ Which of the following best describes the undefined behavior that could occur if
 ◉ The string is freed twice at the end of the program
 → Yes. After `s2` takes ownership, both `s` and `s2` are dropped, and the string is freed on behalf of each.
 ○ There is no undefined behavior in this program
-→ Not quite. Both variables would free the same string, which is undefined behaviour.
+→ Not quite. Both variables would free the same string, which is undefined behavior.
 ````
 
 ---

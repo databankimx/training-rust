@@ -13,6 +13,7 @@ const titleEl = document.querySelector("#title");
 const subtitleEl = document.querySelector("#subtitle");
 const output = document.querySelector("#output");
 const runButton = document.querySelector("#run");
+const testButton = document.querySelector("#test");
 const stopButton = document.querySelector("#stop");
 const clearButton = document.querySelector("#clear");
 const inputForm = document.querySelector("#input-form");
@@ -32,6 +33,50 @@ const copyOutputButton = document.querySelector("#copy-output");
 const copySourceButton = document.querySelector("#copy-source");
 const popoutButton = document.querySelector("#popout");
 
+// Source files: a step can have several .rs files. The drop-down above the editor picks one, and main.rs is the default.
+const fileSelect = document.createElement("select");
+fileSelect.id = "file-select";
+fileSelect.title = "Choose a source file in this step";
+fileSelect.style.margin = "4px 8px";
+sourceView.before(fileSelect);
+let currentFile = null;
+let originalMain = "";
+let mainDraft = null;
+let fileCount = 0;
+
+// Quick picks: whole commands from the step's commands.txt. Choosing one fills the argument box.
+const commandPick = document.createElement("select");
+commandPick.className = "command-pick hidden";
+commandPick.title = "Quick picks for this step";
+input.before(commandPick);
+
+// The drop-down is shown only on the Source tab, for steps with more than one source file.
+function updateFileSelect() {
+  fileSelect.classList.toggle("hidden", activeTab !== "source" || spoilerHidden || fileCount < 2);
+}
+
+// Backtrace toggle: when it is on, each run sets RUST_BACKTRACE, so a panic shows where it came from.
+const BACKTRACE_KEY = "rust-training-backtrace";
+const backtraceLabel = document.createElement("label");
+backtraceLabel.dataset.tip = "Show a backtrace when a program panics";
+backtraceLabel.style.fontSize = "12px";
+backtraceLabel.style.marginLeft = "32px";
+backtraceLabel.style.fontWeight = "normal";
+backtraceLabel.style.letterSpacing = "normal";
+const backtraceToggle = document.createElement("input");
+backtraceToggle.type = "checkbox";
+backtraceToggle.checked = localStorage.getItem(BACKTRACE_KEY) === "1";
+backtraceToggle.addEventListener("change", () => {
+  localStorage.setItem(BACKTRACE_KEY, backtraceToggle.checked ? "1" : "0");
+});
+backtraceLabel.append(backtraceToggle, " Backtrace");
+// The checkbox sits to the right of the OUTPUT heading, in a group that keeps the two together on the left of the bar.
+const paneLabel = document.querySelector(".pane-label");
+const paneLeft = document.createElement("span");
+paneLeft.className = "pane-left";
+paneLabel.before(paneLeft);
+paneLeft.append(paneLabel, backtraceLabel);
+
 let chapters = [];
 let selectedChapter = null;
 let selectedStep = null;
@@ -42,6 +87,10 @@ let original = "";
 let lessonText = "";
 let popped = false;
 let spoilerHidden = false;
+
+// Which kind of run the argument box and quick picks are for: "run" or "test". Set by the Run and Test buttons.
+let pickKind = "run";
+let stepCommands = [];
 
 // Output
 
@@ -76,10 +125,25 @@ function appendNote(text, className) {
 // Buttons and chapters
 
 function updateButtons() {
-  runButton.disabled = running || !selectedStep || !selectedStep.has_code || spoilerHidden;
+  const hasTests = Boolean(selectedStep && selectedStep.has_tests);
+  const testOnly = hasTests && !selectedStep.has_main;
+  // A step whose only program is its tests shows Test in place of Run. Otherwise the two sit side by side.
+  // While a program runs, the Run button stays visible, because it has become Stop.
+  runButton.classList.toggle("hidden", testOnly && !running);
+  testButton.classList.toggle("hidden", !hasTests);
+  const ready = !running && Boolean(selectedStep) && selectedStep.has_code && !spoilerHidden;
+  // While a program runs, the Run button is Stop, and it stays enabled so the program can be stopped.
+  runButton.innerHTML = running ? "&#9632; Stop" : "&#9654; Run";
+  runButton.classList.toggle("stop", running);
+  runButton.disabled = running ? false : !ready;
+  testButton.disabled = !ready;
   stopButton.disabled = !running;
-  input.disabled = !running;
-  sendButton.disabled = !running;
+  // While nothing is running, the input box takes the arguments for a run or a test.
+  input.disabled = !running && !ready;
+  sendButton.disabled = !running && !ready;
+  input.placeholder = running ? "type a line for the program, then Enter" : "arguments, then Enter to run";
+  sendButton.textContent = running ? "Send" : "Go";
+  commandPick.classList.toggle("hidden", running || !ready || commandPick.options.length <= 1);
 }
 
 function renderChapters() {
@@ -206,7 +270,21 @@ function selectChapter(chapter) {
   homeworkMode = false;
   renderChapters();
   renderSteps();
+  revealSubChapters();
   showOverview(chapter.path, "chapter:" + chapter.path, chapter.title, "");
+}
+
+// After a chapter is selected, scroll the chapters pane just far enough that its sub-chapters and Homework sit above the splitter below it.
+function revealSubChapters() {
+  const rows = chaptersEl.querySelectorAll(".section-row, .homework-row");
+  const last = rows.length ? rows[rows.length - 1] : chaptersEl.querySelector(".chapter.open");
+  if (!last) return;
+  requestAnimationFrame(() => {
+    const pane = chaptersEl.getBoundingClientRect();
+    const row = last.getBoundingClientRect();
+    const overflow = row.bottom - pane.bottom;
+    if (overflow > 0) chaptersEl.scrollTop += overflow + 4;
+  });
 }
 
 // Links in an overview lesson, such as #goto/s02-example-structs, select the named child.
@@ -224,6 +302,8 @@ listen("goto", (event) => {
 });
 
 async function selectStep(chapter, step) {
+  // A program that is still running belongs to the step being left, so stop it before showing the new one.
+  if (running) await stop();
   selectedChapter = chapter;
   homeworkMode = chapter.homework.includes(step);
   selectedSection = chapter.sections.find((section) => section.steps.includes(step)) || null;
@@ -236,6 +316,9 @@ async function selectStep(chapter, step) {
   renderSteps();
   updateButtons();
   setTab(activeTab);
+  input.value = "";
+  pickKind = step.has_main ? "run" : "test";
+  loadCommandPicks(step);
   if (spoilerHidden) {
     await loadLesson(step);
   } else {
@@ -262,25 +345,61 @@ function syncScroll() {
 }
 
 async function loadSource(step) {
-  try {
-    if (!step.has_code) {
-      editor.value = "// This step has no code to run. See the Lesson tab.";
-      original = editor.value;
-      editor.readOnly = true;
-      renderEditor();
-      return;
-    }
-    editor.readOnly = false;
-    original = await invoke("read_source", { path: step.path });
-    editor.value = original;
-    editor.scrollTop = 0;
+  mainDraft = null;
+  originalMain = "";
+  currentFile = null;
+  if (!step.has_code) {
+    fileSelect.replaceChildren();
+    fileCount = 0;
+    updateFileSelect();
+    editor.value = "// This step has no code to run. See the Lesson tab.";
+    original = editor.value;
+    editor.readOnly = true;
     renderEditor();
+    return;
+  }
+  try {
+    const files = await invoke("list_source_files", { path: step.path });
+    fileCount = files.length;
+    updateFileSelect();
+    fileSelect.replaceChildren(
+      ...files.map((file) => {
+        const option = document.createElement("option");
+        option.value = file;
+        option.textContent = file;
+        return option;
+      }),
+    );
+    await loadSourceFile(step, "main.rs");
   } catch (error) {
     original = "";
     editor.value = `${error}`;
     renderEditor();
   }
 }
+
+/** Shows one source file. Only main.rs can be edited, because only main.rs is sent to the runner. */
+async function loadSourceFile(step, file) {
+  if (currentFile === "main.rs" && !editor.readOnly) mainDraft = editor.value;
+  currentFile = file;
+  fileSelect.value = file;
+  const text = await invoke("read_source", { path: step.path, file });
+  if (file === "main.rs") {
+    originalMain = text;
+    editor.value = mainDraft ?? text;
+    editor.readOnly = false;
+  } else {
+    editor.value = text;
+    editor.readOnly = true;
+  }
+  original = text;
+  editor.scrollTop = 0;
+  renderEditor();
+}
+
+fileSelect.addEventListener("change", () => {
+  if (selectedStep) loadSourceFile(selectedStep, fileSelect.value);
+});
 
 function resetEditor() {
   editor.value = original;
@@ -338,17 +457,59 @@ function renderLesson() {
   renderLessonInto(lessonEl, lessonText);
 }
 
+// Quick picks for the step. Only the picks for the current kind of run (cargo run or cargo test) are listed.
+async function loadCommandPicks(step) {
+  const commands = step.has_code ? await invoke("read_commands", { path: step.path }) : [];
+  if (selectedStep !== step) return;
+  stepCommands = commands;
+  renderCommandPick();
+}
+
+function renderCommandPick() {
+  commandPick.replaceChildren();
+  const placeholder = document.createElement("option");
+  placeholder.textContent = "Quick picks";
+  placeholder.value = "";
+  commandPick.appendChild(placeholder);
+  for (const command of stepCommands) {
+    // A pick may start with NAME=value settings, such as IGNORE_CASE=1. They stay in the box, and the cargo part gives the kind.
+    const match = command.match(/^((?:\w+=\S+\s+)*)cargo\s+(test|run)\s*(.*)$/);
+    const option = document.createElement("option");
+    option.textContent = command;
+    option.value = match ? match[1] + match[3] : command;
+    option.dataset.kind = match && match[2] === "test" ? "test" : "run";
+    commandPick.appendChild(option);
+  }
+  updateButtons();
+}
+
+commandPick.addEventListener("change", () => {
+  // Choosing a pick sets the kind of run as well as the arguments. Choosing "cargo test" (no arguments) clears the box.
+  const option = commandPick.selectedOptions[0];
+  if (option && option.dataset.kind) pickKind = option.dataset.kind;
+  input.value = commandPick.value;
+  input.focus();
+});
+
 // Running
 
-async function run() {
+// The argument box's text, split into separate arguments. An empty box gives no arguments.
+function boxArgs() {
+  return input.value.trim().split(/\s+/).filter(Boolean);
+}
+
+async function run(mode, args = []) {
   if (!selectedStep || running) return;
+  // With no mode given (F5), a test-only step runs its tests, and any other step runs its program.
+  const kind = mode ?? (selectedStep.has_tests && !selectedStep.has_main ? "test" : "run");
   running = true;
   output.replaceChildren();
   updateButtons();
-  // Send the edited code only when it differs from the file on disk.
-  const edited = editor.value !== original ? editor.value : null;
+  // Send main.rs only when its text differs from the file on disk. Other files are read-only.
+  const mainText = currentFile === "main.rs" ? editor.value : mainDraft ?? originalMain;
+  const edited = mainText !== originalMain ? mainText : null;
   try {
-    await invoke("run_step", { path: selectedStep.path, source: edited });
+    await invoke("run_step", { path: selectedStep.path, source: edited, backtrace: backtraceToggle.checked, test: kind === "test", args });
   } catch (error) {
     appendOutput(`${error}\n`, "stderr");
     running = false;
@@ -363,6 +524,13 @@ async function stop() {
 
 async function sendInput(event) {
   event.preventDefault();
+  // While a program is running, the box sends a line to it. Otherwise it gives the arguments for a run.
+  if (!running) {
+    if (!selectedStep) return;
+    const args = boxArgs();
+    run(pickKind, args);
+    return;
+  }
   const text = input.value;
   input.value = "";
   appendNote(`${text}\n`, "input");
@@ -412,10 +580,53 @@ function setTab(name) {
   lessonEl.classList.toggle("hidden", name !== "lesson");
   document.querySelector("#reset").classList.toggle("hidden", !showSource);
   modifiedEl.classList.toggle("hidden", !showSource || editor.value === original);
+  updateFileSelect();
   if (name === "lesson") applyLessonScroll();
 }
 
-runButton.addEventListener("click", run);
+runButton.addEventListener("click", () => {
+  // While a program is running, the Run button is Stop.
+  if (running) {
+    stop();
+    return;
+  }
+  pickKind = "run";
+  renderCommandPick();
+  run("run", boxArgs());
+});
+testButton.addEventListener("click", () => {
+  pickKind = "test";
+  renderCommandPick();
+  run("test", boxArgs());
+});
+
+// A short message that fades out. The text is shown for a moment, then removed.
+function showToast(message) {
+  const toast = document.createElement("div");
+  toast.className = "toast";
+  toast.textContent = message;
+  document.body.append(toast);
+  setTimeout(() => toast.classList.add("fade"), 400);
+  setTimeout(() => toast.remove(), 1250);
+}
+
+// Undocumented: Ctrl+Shift+Alt+Backspace clears quiz answers and revealed solutions. Backtrace and theme settings are kept.
+// It listens in the capture phase, so the editor and other controls cannot swallow the key before it arrives.
+window.addEventListener(
+  "keydown",
+  (event) => {
+    if (!(event.ctrlKey && event.shiftKey && event.altKey && event.key === "Backspace")) return;
+    event.preventDefault();
+    for (const key of Object.keys(localStorage)) {
+      if (key.startsWith("rust-training-quiz:") || key.startsWith("rust-training-revealed:")) {
+        localStorage.removeItem(key);
+      }
+    }
+    if (selectedStep) selectStep(selectedChapter, selectedStep);
+    showToast("Progress reset");
+  },
+  true,
+);
 
 // Spoiler: reveals the example solution for a homework step, and remembers that it was revealed.
 revealButton.addEventListener("click", async () => {
@@ -423,7 +634,7 @@ revealButton.addEventListener("click", async () => {
   localStorage.setItem(REVEALED_PREFIX + selectedStep.path, "1");
   spoilerHidden = false;
   updateButtons();
-  await Promise.all([loadSource(selectedStep), loadLesson(selectedStep)]);
+  await Promise.all([loadSource(selectedStep), loadLesson(selectedStep), loadCommandPicks(selectedStep)]);
   setTab("source");
 });
 
@@ -462,7 +673,7 @@ document.querySelectorAll(".tab").forEach((tab) => {
 document.addEventListener("keydown", (event) => {
   if (event.key === "F5") {
     event.preventDefault();
-    run();
+    run(undefined, boxArgs());
   } else if (event.key === "Escape") {
     if (running) {
       stop();
@@ -534,6 +745,7 @@ invoke("list_chapters")
   .catch((error) => appendOutput(`${error}\n`, "stderr"));
 
 copyOutputButton.innerHTML = icon("copy");
+clearButton.innerHTML = icon("eraser");
 copySourceButton.innerHTML = icon("copy");
 popoutButton.innerHTML = icon("popout");
 document.querySelector("#moon").innerHTML = icon("moon");

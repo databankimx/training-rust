@@ -26,6 +26,18 @@ struct FinishedEvent {
     code: Option<i32>,
 }
 
+/// True for a NAME=value argument, such as IGNORE_CASE=1. Such arguments set an environment variable for the run, not a program argument.
+fn is_assignment(arg: &str) -> bool {
+    match arg.split_once('=') {
+        Some((name, _)) => {
+            !name.is_empty()
+                && !name.starts_with(|c: char| c.is_ascii_digit())
+                && name.chars().all(|c| c.is_ascii_alphanumeric() || c == '_')
+        }
+        None => false,
+    }
+}
+
 /// Runs `cargo run` for a step. With `source`, the step is first copied to a
 /// temporary folder and its `src/main.rs` replaced, so the repository is untouched.
 pub fn start(
@@ -33,12 +45,38 @@ pub fn start(
     state: State<'_, RunState>,
     dir: String,
     source: Option<String>,
+    backtrace: bool,
+    test: bool,
+    args: Vec<String>,
 ) -> Result<(), String> {
     stop(&state);
 
+    // Leading NAME=value arguments set environment variables for this run only.
+    let split = args.iter().position(|arg| !is_assignment(arg)).unwrap_or(args.len());
+    let (assignments, args) = args.split_at(split);
+
     let mut command = Command::new("cargo");
+    for pair in assignments {
+        if let Some((name, value)) = pair.split_once('=') {
+            command.env(name, value);
+        }
+    }
+    if backtrace {
+        // Set for this run only, so panics show a backtrace without changing the user's environment.
+        command.env("RUST_BACKTRACE", "1");
+    }
+    if test {
+        command.arg("test").args(args);
+    } else {
+        command.arg("run");
+        // A leading -- is cargo's separator, which the runner adds itself. Quick picks include it, so it's dropped here.
+        let program_args = if args.first().map(String::as_str) == Some("--") { &args[1..] } else { &args[..] };
+        if !program_args.is_empty() {
+            // Arguments for the program itself come after --, as cargo expects.
+            command.arg("--").args(program_args);
+        }
+    }
     command
-        .arg("run")
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
         .stderr(Stdio::piped());
