@@ -1,0 +1,10 @@
+# DataBank Standards Policy Configuration
+# See Custom-Dev-Developer-Guide.md for full rule documentation.
+#
+# textbook-downloads folders contain reference implementations from the
+# Python Crash Course textbook (2nd and 3rd editions). These are not
+# production code and are excluded from standards enforcement.
+
+python:
+  excluded_globs:
+    - "**/textbook-downloads/**"

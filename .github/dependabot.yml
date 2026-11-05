@@ -1,0 +1,59 @@
+version: 2
+updates:
+  # JavaScript dependencies for the lesson runner
+  - package-ecosystem: "npm"
+    directory: "/lesson-runner"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+      - "javascript"
+    groups:
+      # Bundle low-risk minor/patch bumps into one PR; major bumps stay separate
+      npm-minor-patch:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
+
+  # Cargo dependencies for the lesson projects
+  - package-ecosystem: "cargo"
+    directories:
+      - "/ch*/*"
+      - "/ch*/*/*"
+      - "/ch*/*/*/*"
+      - "/ch*/*/*/*/*"
+      - "/final-project/*"
+      - "/final-project/*/*"
+      - "/lesson-runner/src-tauri"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+      - "rust"
+    groups:
+      cargo-minor-patch:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
+        group-by: "dependency-name"
+
+  # GitHub Actions used in workflows
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+      - "github-actions"
+    groups:
+      # Bundle all GitHub Actions updates into a single PR
+      github-actions:
+        patterns:
+          - "*"
