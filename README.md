@@ -105,6 +105,24 @@ All of these are under permissive licenses (MIT, Apache 2.0, or both), and can b
 
 The full policy is in [Development Rules of Engagement](development-rules-of-engagement.md), section 12.
 
+## Third Party Licenses
+
+All dependencies and third-party components used in this training repository are listed above. They are all under permissive licenses (MIT, Apache 2.0, or both) and are compatible with closed-source commercial use.
+
+**Key licensing summary:**
+- **Rust toolchain:** Rust license (MIT/Apache 2.0 dual) via rustup
+- **Runner framework (Tauri):** MIT
+- **Data handling (serde, serde_json):** MIT
+- **Build tools (npm, @tauri-apps/cli):** MIT and related permissive licenses
+- **Rendering (marked, @viz-js/viz):** MIT, with Graphviz (EPL-2.0) wrapped
+- **Helper crate (trpl):** Available from crates.io under permissive license
+
+For the current list of all dependencies and their versions, check:
+- Rust dependencies: `lesson-runner/src-tauri/Cargo.toml` and individual step `Cargo.toml` files
+- Node.js dependencies: `lesson-runner/package.json`
+
+For questions about licensing compliance, see the [Development Rules of Engagement](development-rules-of-engagement.md), section 12.
+
 ### VS Code
 
 Install the **rust-analyzer** extension (publisher `rust-lang`). It checks your code as you type, and shows the same errors the compiler does. The setup script installs it when VS Code's `code` command is on your PATH.

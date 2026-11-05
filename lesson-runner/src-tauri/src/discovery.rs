@@ -56,7 +56,32 @@ fn extra_chapter_number(name: &str) -> Option<u32> {
 
 /// Words that are always written in capitals in titles, whatever the folder name says. Matching ignores case, so `io` shows as IO.
 /// Add an acronym here when a folder name would otherwise show it as a normal word.
-const ALL_CAPS_WORDS: &[&str] = &["api", "c", "cli", "ffi", "http", "io", "json", "oo", "oop", "sql", "ui", "url", "xml"];
+const ALL_CAPS_WORDS: &[&str] = &["api", "c", "cli", "ffi", "html", "http", "io", "json", "oo", "oop", "sql", "ui", "url", "xml"];
+
+/// Words with a fixed spelling that isn't simply all capitals. Each maps to its title spelling.
+const SPECIAL_WORDS: &[(&str, &str)] = &[("rust", "Rust")];
+
+/// Hyphenated phrases that keep their hyphen in titles, such as "Re-exporting".
+const SPECIAL_PHRASES: &[(&str, &str)] = &[("re-exporting", "Re-exporting")];
+
+/// The title spelling of a word: a fixed spelling if it has one, otherwise its all-caps form, if it has one.
+fn special_word(word: &str) -> Option<String> {
+    let key = word.to_lowercase();
+    SPECIAL_WORDS
+        .iter()
+        .find(|(from, _)| *from == key)
+        .map(|(_, to)| to.to_string())
+        .or_else(|| all_caps(word))
+}
+
+/// The title spelling of a whole hyphenated phrase, if it has one.
+fn special_phrase(rest: &str) -> Option<String> {
+    let key = rest.to_lowercase();
+    SPECIAL_PHRASES
+        .iter()
+        .find(|(from, _)| *from == key)
+        .map(|(_, to)| to.to_string())
+}
 
 /// The all-caps form of a word, if it's on the exceptions list.
 fn all_caps(word: &str) -> Option<String> {
@@ -75,7 +100,7 @@ fn chapter_title(name: &str, number: u32) -> String {
         .split('-')
         .filter(|word| !word.is_empty())
         .map(|word| {
-            all_caps(word).unwrap_or_else(|| {
+            special_word(word).unwrap_or_else(|| {
                 let mut chars = word.chars();
                 match chars.next() {
                     Some(first) => first.to_uppercase().collect::<String>() + chars.as_str(),
@@ -134,12 +159,15 @@ pub fn discover() -> Vec<Chapter> {
 /// except for words on the all-caps list, which are capitalized wherever they appear.
 fn step_title(name: &str) -> String {
     let rest = name.trim_start_matches(|c: char| c.is_ascii_digit()).trim_start_matches('-');
+    if let Some(phrase) = special_phrase(rest) {
+        return phrase;
+    }
     let words: Vec<String> = rest
         .split('-')
         .filter(|w| !w.is_empty())
         .enumerate()
         .map(|(index, word)| {
-            if let Some(caps) = all_caps(word) {
+            if let Some(caps) = special_word(word) {
                 return caps;
             }
             if index > 0 {
