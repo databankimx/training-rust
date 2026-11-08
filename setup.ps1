@@ -79,6 +79,11 @@ function Install-WithWinget([string]$id, [string]$label, [string]$override = "")
     } else {
         & winget install --id $id -e --accept-package-agreements --accept-source-agreements
     }
+    if ($LASTEXITCODE -eq 3010) {
+        Write-Note "winget reports that $label needs a restart before it's fully ready. Restart, then run this script again."
+        Update-SessionPath
+        return $true
+    }
     if ($LASTEXITCODE -ne 0) {
         Write-Note "winget didn't install $label (exit code $LASTEXITCODE). Company policy can block winget installs. Ask IT, or install it by hand."
         return $false
@@ -212,7 +217,7 @@ if ($cppPath) {
     $script:results["C++ workload"] = "ok"
 } elseif ($InstallMissing) {
     Write-Note "The C++ build tools aren't installed, so they will be installed. This is a large download."
-    $override = "--wait --add Microsoft.VisualStudio.Workload.VCTools --includeRecommended"
+    $override = "--quiet --wait --norestart --add Microsoft.VisualStudio.Workload.VCTools --includeRecommended"
     if (Install-WithWinget "Microsoft.VisualStudio.BuildTools" "Visual Studio Build Tools" $override) {
         $cppPath = Get-CppBuildToolsPath
     }
