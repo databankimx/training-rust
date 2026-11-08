@@ -14,19 +14,19 @@ Commands are for **Windows PowerShell**, and assume you're in the repository roo
 Open **PowerShell as Administrator**, go to the folder where you saved `setup.ps1`, and run:
 
 ```pwsh
-powershell -ExecutionPolicy Bypass -File .\setup.ps1 -InstallMissing
+powershell -ExecutionPolicy Bypass -File .\setup.ps1
 ```
 
 The `-ExecutionPolicy Bypass` part lets this one script run. It doesn't change any setting on your machine.
 
-With `-InstallMissing`, the script:
+By default, the script:
 
-- installs **Rust** (rustup and the stable toolchain), **Node.js LTS**, and **Git**, if they're missing
+- installs **Rust** (rustup and the stable toolchain), **Node.js LTS**, **Git**, and **VS Code** (with the rust-analyzer extension), if they're missing
 - installs the **C++ build tools** silently, if Visual Studio with the C++ workload isn't already installed. This is a large download, and it can take several minutes
 - clones the repository into `C:\Development\training\training-rust`, if the script isn't already inside it, and continues from the clone
 - installs the runner's packages, copies the browser libraries into place, and downloads the runner's Rust crates
 
-The elevated window is needed for the C++ build tools, which install machine-wide. Without `-InstallMissing`, the script doesn't install anything. It stops and shows the winget commands to run. Company policy can block winget, in which case the script says so and you'll need IT.
+The elevated window is needed for the C++ build tools, which install machine-wide. To check only, without installing anything, run `powershell -ExecutionPolicy Bypass -File .\setup.ps1 -InstallMissing:$false`. The script then stops and shows the winget commands to run. Company policy can block winget, in which case the script says so and you'll need IT.
 
 When the script finishes, every line in the summary should say `ok`. Then start the runner yourself (step 7), so you can see its first build.
 
