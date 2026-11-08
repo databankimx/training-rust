@@ -79,6 +79,11 @@ function Install-WithWinget([string]$id, [string]$label, [string]$override = "")
     } else {
         & winget install --id $id -e --accept-package-agreements --accept-source-agreements
     }
+    if ($LASTEXITCODE -eq 3010) {
+        Write-Note "winget reports that $label needs a restart before it's fully ready. Restart, then run this script again."
+        Update-SessionPath
+        return $true
+    }
     if ($LASTEXITCODE -ne 0) {
         Write-Note "winget didn't install $label (exit code $LASTEXITCODE). Company policy can block winget installs. Ask IT, or install it by hand."
         return $false
@@ -115,12 +120,78 @@ function Get-CppBuildToolsPath {
 
 # 1. Rust ------------------------------------------------------------------------------------------
 
+if ($InstallMissing) {
+    $identity = [Security.Principal.WindowsIdentity]::GetCurrent()
+    $principal = New-Object Security.Principal.WindowsPrincipal($identity)
+    if (-not $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
+        Stop-Setup "-InstallMissing needs an elevated PowerShell, because the C++ build tools install machine-wide. Open PowerShell as Administrator, and run the script again."
+    }
+}
+
+# 0. Git and the repository -----------------------------------------------------------------------------
+
+Write-Step "0. Git and the repository"
+$gitPath = $null
+$gitCommand = Get-Command git -ErrorAction SilentlyContinue
+if ($gitCommand) {
+    $gitPath = $gitCommand.Source
+} elseif (Test-Path "C:\Program Files\Git\cmd\git.exe") {
+    $gitPath = "C:\Program Files\Git\cmd\git.exe"
+}
+if (-not $gitPath -and $InstallMissing) {
+    Write-Note "Git isn't installed, so it will be installed."
+    Install-WithWinget "Git.Git" "Git" | Out-Null
+    $gitCommand = Get-Command git -ErrorAction SilentlyContinue
+    if ($gitCommand) {
+        $gitPath = $gitCommand.Source
+    } elseif (Test-Path "C:\Program Files\Git\cmd\git.exe") {
+        $gitPath = "C:\Program Files\Git\cmd\git.exe"
+    }
+}
+if (-not (Test-Path (Join-Path $root "QUICKSTART.md"))) {
+    # The script is running outside the repository. Clone it, or use the existing clone, then run its copy.
+    $defaultRepoPath = "C:\Development\training\training-rust"
+    $repoUrl = "https://github.com/databankimx/training-rust.git"
+    if (-not (Test-Path (Join-Path $defaultRepoPath "QUICKSTART.md"))) {
+        if (-not $gitPath) {
+            Stop-Setup "Git is needed to clone the repository. Run this script with -InstallMissing, or install Git from https://git-scm.com."
+        }
+        Write-Note "Cloning $repoUrl into $defaultRepoPath"
+        New-Item -ItemType Directory -Force -Path (Split-Path $defaultRepoPath -Parent) | Out-Null
+        & $gitPath clone --branch main $repoUrl $defaultRepoPath
+        if ($LASTEXITCODE -ne 0) {
+            Stop-Setup "git clone failed (exit code $LASTEXITCODE). Check the address, and your access to the repository."
+        }
+    } else {
+        Write-Note "Using the repository at $defaultRepoPath"
+    }
+    $childScript = Join-Path $defaultRepoPath "setup.ps1"
+    if (Test-Path $childScript) {
+        # The repository has its own copy of this script, so run that copy.
+        $childParams = @{}
+        if ($InstallMissing) { $childParams["InstallMissing"] = $true }
+        & $childScript @childParams
+        exit $LASTEXITCODE
+    }
+    # The repository doesn't have this script yet, so carry on here, using the clone's files.
+    Write-Note "The repository has no setup.ps1 yet, so this copy continues the setup."
+    $root = $defaultRepoPath
+    Set-Location $root
+}
+$script:results["Repository"] = $root
+
 Write-Step "1. Rust 1.85 or later (rustup, rustc, cargo)"
 $rustVersion = Get-RustVersion
 if (-not $rustVersion) {
     if ($InstallMissing) {
         Write-Note "Rust isn't on PATH, so it will be installed with rustup."
         if (Install-WithWinget "Rustlang.Rustup" "Rust (rustup)") {
+            # rustup only installs the manager. The stable toolchain, which provides rustc and cargo, is installed separately.
+            Write-Note "Installing the stable Rust toolchain with rustup..."
+            & rustup default stable
+            if ($LASTEXITCODE -ne 0) {
+                Stop-Setup "rustup couldn't install the stable toolchain (exit code $LASTEXITCODE). Check the messages above."
+            }
             $rustVersion = Get-RustVersion
         }
     }
@@ -146,19 +217,19 @@ if ($cppPath) {
     $script:results["C++ workload"] = "ok"
 } elseif ($InstallMissing) {
     Write-Note "The C++ build tools aren't installed, so they will be installed. This is a large download."
-    $override = "--wait --add Microsoft.VisualStudio.Workload.VCTools --includeRecommended"
-    if (Install-WithWinget "Microsoft.VisualStudio.2022.BuildTools" "Visual Studio Build Tools" $override) {
+    $override = "--quiet --wait --norestart --add Microsoft.VisualStudio.Workload.VCTools --includeRecommended"
+    if (Install-WithWinget "Microsoft.VisualStudio.BuildTools" "Visual Studio Build Tools" $override) {
         $cppPath = Get-CppBuildToolsPath
     }
     if ($cppPath) {
         Write-Note "Installed the C++ build tools."
         $script:results["C++ workload"] = "ok"
     } else {
-        Add-Warning "The C++ build tools couldn't be installed. Install them by hand: winget install Microsoft.VisualStudio.2022.BuildTools, then choose 'Desktop development with C++'. Rust can't link programs without them."
+        Add-Warning "The C++ build tools couldn't be installed. Install them by hand: winget install Microsoft.VisualStudio.BuildTools, then choose 'Desktop development with C++'. Rust can't link programs without them."
         $script:results["C++ workload"] = "missing"
     }
 } else {
-    Add-Warning "The C++ workload isn't installed, in Visual Studio or the Build Tools. Rust needs it to link programs. Install Visual Studio with 'Desktop development with C++', or install the Build Tools with: winget install Microsoft.VisualStudio.2022.BuildTools --override ""--wait --add Microsoft.VisualStudio.Workload.VCTools --includeRecommended"" (or run this script with -InstallMissing, which installs only the Build Tools)."
+    Add-Warning "The C++ workload isn't installed, in Visual Studio or the Build Tools. Rust needs it to link programs. Install Visual Studio with 'Desktop development with C++', or install the Build Tools with: winget install Microsoft.VisualStudio.BuildTools --override ""--wait --add Microsoft.VisualStudio.Workload.VCTools --includeRecommended"" (or run this script with -InstallMissing, which installs only the Build Tools)."
     $script:results["C++ workload"] = "missing"
 }
 
