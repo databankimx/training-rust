@@ -9,25 +9,26 @@ Commands are for **Windows PowerShell**, and assume you're in the repository roo
 
 ## Quick setup with the script
 
-If you'd rather not type each command, `setup.ps1` in the repository root checks or does steps 1 to 6 below, in order. It's safe to run more than once: anything already
-in place is skipped.
+`setup.ps1` installs what's missing, clones the repository if you don't have it yet, and then checks or does steps 1 to 7 below, in order. It's safe to run more than once: anything already in place is skipped.
 
-First, install **Rust** and **Node.js** (step 1 below), or let the script install them. Then, from the repository root, run:
+Open **PowerShell as Administrator**, go to the folder where you saved `setup.ps1`, and run:
 
 ```pwsh
-powershell -ExecutionPolicy Bypass -File .\setup.ps1
+powershell -ExecutionPolicy Bypass -File .\setup.ps1 -InstallMissing
 ```
 
 The `-ExecutionPolicy Bypass` part lets this one script run. It doesn't change any setting on your machine.
 
-The script leaves two things to you:
+With `-InstallMissing`, the script:
 
-- **Installing Rust, the C++ build tools, and Node.js.** The script checks for them. Add `-InstallMissing` to have it install them with winget, using
-  `powershell -ExecutionPolicy Bypass -File .\setup.ps1 -InstallMissing`. Without the switch, it stops and shows the winget commands. Company policy can block winget,
-  in which case the script says so and you'll need IT.
-- **Starting the runner (step 7).** The script prepares everything, but you start the runner yourself, so you can see its first build.
+- installs **Rust** (rustup and the stable toolchain), **Node.js LTS**, and **Git**, if they're missing
+- installs the **C++ build tools** silently, if Visual Studio with the C++ workload isn't already installed. This is a large download, and it can take several minutes
+- clones the repository into `C:\Development\training\training-rust`, if the script isn't already inside it, and continues from the clone
+- installs the runner's packages, copies the browser libraries into place, and downloads the runner's Rust crates
 
-When the script finishes, it prints a summary and any warnings. Steps 1 to 8 below cover the same work, if you need to see what the script does or run one part by hand.
+The elevated window is needed for the C++ build tools, which install machine-wide. Without `-InstallMissing`, the script doesn't install anything. It stops and shows the winget commands to run. Company policy can block winget, in which case the script says so and you'll need IT.
+
+When the script finishes, every line in the summary should say `ok`. Then start the runner yourself (step 7), so you can see its first build.
 
 ---
 
@@ -41,14 +42,17 @@ When the script finishes, it prints a summary and any warnings. Steps 1 to 8 bel
 | **VS Code** (optional) | Editor, with the rust-analyzer extension | |
 | **Git** (optional) | Updating the repository | `git --version` |
 
-Install them with winget, in a PowerShell window:
+Install them with winget, in an elevated (Administrator) PowerShell window. The C++ build tools install silently, and take several minutes:
 
 ```pwsh
 winget install Rustlang.Rustup
-winget install Microsoft.VisualStudio.2022.BuildTools --override "--wait --add Microsoft.VisualStudio.Workload.VCTools --includeRecommended"
+rustup default stable
+winget install Microsoft.VisualStudio.BuildTools --override "--quiet --wait --norestart --add Microsoft.VisualStudio.Workload.VCTools --includeRecommended"
 winget install OpenJS.NodeJS.LTS
 winget install Microsoft.VisualStudioCode
 ```
+
+`rustup default stable` is needed after installing rustup. The rustup install only adds the manager, and the stable toolchain provides `rustc` and `cargo`. Open a new PowerShell window before you run it, so rustup is on the PATH.
 
 The C++ build tools are only needed if you don't already have Visual Studio with the *Desktop development with C++* workload. Visual Studio includes the same
 linker, so a full Visual Studio install with that workload is enough, and you can skip the Build Tools command above. The setup script checks for either one.
