@@ -11,6 +11,6 @@
   },
   "dependencies": {
     "@viz-js/viz": "^3.31.0",
-    "marked": "^18.1.2"
+    "marked": "^18.1.3"
   }
 }
