@@ -20,7 +20,7 @@
 #   powershell -ExecutionPolicy Bypass -File .\setup.ps1 -InstallMissing
 
 param(
-    [switch]$InstallMissing
+    [bool]$InstallMissing = $true
 )
 
 $ErrorActionPreference = "Stop"
@@ -168,8 +168,7 @@ if (-not (Test-Path (Join-Path $root "QUICKSTART.md"))) {
     $childScript = Join-Path $defaultRepoPath "setup.ps1"
     if (Test-Path $childScript) {
         # The repository has its own copy of this script, so run that copy.
-        $childParams = @{}
-        if ($InstallMissing) { $childParams["InstallMissing"] = $true }
+        $childParams = @{ InstallMissing = $InstallMissing }
         & $childScript @childParams
         exit $LASTEXITCODE
     }
@@ -309,6 +308,16 @@ try {
 # 7. VS Code extension ----------------------------------------------------------------------------
 
 Write-Step "7. VS Code and the rust-analyzer extension (optional)"
+if (-not (Get-Command code -ErrorAction SilentlyContinue) -and $InstallMissing) {
+    Write-Note "VS Code isn't on PATH, so it will be installed with winget."
+    & winget install -e --id Microsoft.VisualStudioCode --accept-package-agreements --accept-source-agreements
+    if ($LASTEXITCODE -ne 0 -and $LASTEXITCODE -ne -1978335189) {
+        Add-Warning "VS Code couldn't be installed with winget (exit code $LASTEXITCODE). Install it from code.visualstudio.com, then run this script again."
+    }
+    foreach ($folder in @((Join-Path $env:LOCALAPPDATA "Programs\Microsoft VS Code\bin"), (Join-Path $env:ProgramFiles "Microsoft VS Code\bin"))) {
+        if (Test-Path (Join-Path $folder "code.cmd")) { $env:Path = "$folder;$env:Path" }
+    }
+}
 $code = Get-Command code -ErrorAction SilentlyContinue
 if (-not $code) {
     Write-Note "VS Code's code command isn't on PATH, so the extension wasn't installed. This is optional."
