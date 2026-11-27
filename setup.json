@@ -3,7 +3,7 @@
   "name": "Working With Rust",
   "folder": "training-rust",
   "repoUrl": "https://github.com/databankimx/training-rust.git",
-  "branch": "main",
+  "branch": "dev",
   "baseDirectory": "C:\\Development\\training",
   "runTests": false,
   "installs": {
@@ -21,7 +21,7 @@
       "winget": "Microsoft.VisualStudioCode",
       "extensions": [ "rust-lang.rust-analyzer" ]
     },
-    "notepadPlusPlus": { "install": false, "winget": "Notepad++.Notepad++" }
+    "notepadPlusPlus": { "install": true, "winget": "Notepad++.Notepad++" }
   },
   "steps": [
     {

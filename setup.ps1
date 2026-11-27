@@ -909,7 +909,11 @@ function Invoke-NpmStep($Step, [string]$Name) {
             return
         }
     }
-    Set-Outcome $Name "ok" $folder
+    if (Test-Path -LiteralPath $electronExe) {
+        Set-Outcome $Name "ok" "$folder (Electron binary present)"
+    } else {
+        Set-Outcome $Name "ok" $folder
+    }
 }
 
 function Invoke-NpmRunStep($Step, [string]$Name) {
