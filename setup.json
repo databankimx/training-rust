@@ -1,0 +1,61 @@
+{
+  "schemaVersion": 2,
+  "name": "Working With Rust",
+  "folder": "training-rust",
+  "repoUrl": "https://github.com/databankimx/training-rust.git",
+  "branch": "dev",
+  "baseDirectory": "C:\\Development\\training",
+  "runTests": false,
+  "installs": {
+    "git": { "install": true, "winget": "Git.Git" },
+    "powershell7": { "install": true, "pinned": "7", "winget": "Microsoft.PowerShell" },
+    "rust": {
+      "install": true,
+      "pinned": "1.85",
+      "orNewer": true,
+      "winget": "Rustlang.Rustup"
+    },
+    "node": { "install": true, "pinned": "24", "orNewer": true, "winget": "OpenJS.NodeJS.LTS" },
+    "buildTools": { "install": true },
+    "vcRuntime": { "install": true },
+    "vscode": {
+      "install": true,
+      "winget": "Microsoft.VisualStudioCode",
+      "extensions": [ "rust-lang.rust-analyzer" ]
+    },
+    "notepadPlusPlus": { "install": false, "winget": "Notepad++.Notepad++" }
+  },
+  "steps": [
+    {
+      "name": "Runner packages",
+      "type": "npm",
+      "folder": "lesson-runner",
+      "command": "ci",
+      "requires": [ "node" ]
+    },
+    {
+      "name": "Browser library: marked",
+      "type": "copy",
+      "source": "lesson-runner\\node_modules\\marked\\lib\\marked.esm.js",
+      "dest": "lesson-runner\\src\\vendor\\marked.js"
+    },
+    {
+      "name": "Browser library: viz",
+      "type": "copy",
+      "source": "lesson-runner\\node_modules\\@viz-js\\viz\\dist\\viz.js",
+      "dest": "lesson-runner\\src\\vendor\\viz.js"
+    },
+    {
+      "name": "Runner crates (cargo fetch)",
+      "type": "command",
+      "folder": "lesson-runner\\src-tauri",
+      "exe": "cargo",
+      "args": [ "fetch" ],
+      "requires": [ "rust" ]
+    }
+  ],
+  "launch": {
+    "ide": "vscode",
+    "kind": "none"
+  }
+}
