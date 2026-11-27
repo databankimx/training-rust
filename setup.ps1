@@ -26,7 +26,8 @@
     msbuild-restore (solution), write-file (path, content or contentFrom, optional ifMissing), dotnet-build (projects),
     download (url, path, and optional extract "zip" with folder), verify-hashes (manifest: checks the files in the
     manifest's folder against its SHA-256 list, and fails on a missing, changed, or unlisted file).
-    The launch section takes kind "electron" (the runner's Electron app in folder, optionally opening "main", a script
+    The launch section takes kind "command" (a long-running program, such as cmd.exe running npm run tauri dev, started
+    in the background with "exe", "args" and "folder"), kind "electron" (the runner's Electron app in folder, optionally opening "main", a script
     path such as lesson-runner/main.js, instead of the folder itself) or "exe" (a built program at file).
 
     Every step may set: name, type, folder, enabled, requires (install names), runTests, elevated.
@@ -1218,6 +1219,16 @@ function Start-Runner($Launch) {
             Set-Outcome "lesson-runner" "warning" "$file isn't built yet, so the runner wasn't started."
         }
     }
+    if ((Get-Prop $Launch "kind" "") -eq "command") {
+        # A long-running command, such as npm run tauri dev. It runs in the background, and its output goes to the log
+        # folder, so the setup doesn't wait for it.
+        $exe = Get-Prop $Launch "exe" $null
+        $logDir = Split-Path -Parent $script:LogFile
+        Start-Process -FilePath $exe -ArgumentList @(Get-Prop $Launch "args" @()) -WorkingDirectory $folder -WindowStyle Hidden `
+            -RedirectStandardOutput (Join-Path $logDir "lesson-runner-out.log") `
+            -RedirectStandardError (Join-Path $logDir "lesson-runner-err.log")
+        Write-LogOnly "Started $exe in $folder."
+    }
     if ((Get-Prop $Launch "kind" "") -eq "electron") {
         $exe = Join-Path $folder "node_modules\electron\dist\electron.exe"
         # npm hoists node_modules to the workspace root when the runner is a workspace, so check the repository root too.
@@ -1500,7 +1511,8 @@ function Get-SchemaProblems($Config) {
                 [void]$problems.Add("launch.ide 'visualstudio' needs 'solution', the .sln path in the repository.")
             }
             $kind = Get-Prop $launch "kind" "none"
-            if (@("none", "electron", "exe") -notcontains $kind) { [void]$problems.Add("launch.kind must be 'none', 'electron', or 'exe'.") }
+            if (@("none", "electron", "exe", "command") -notcontains $kind) { [void]$problems.Add("launch.kind must be 'none', 'electron', 'exe', or 'command'.") }
+            if ($kind -eq "command" -and -not (Get-Prop $launch "exe" $null)) { [void]$problems.Add("launch.kind 'command' needs 'exe', the program to run.") }
             if ($kind -eq "exe" -and -not (Test-IsText (Get-Prop $launch "file" $null))) {
                 [void]$problems.Add("launch.kind 'exe' needs 'file', the built program's path in the repository.")
             }

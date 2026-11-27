@@ -54,6 +54,9 @@
   ],
   "launch": {
     "ide": "vscode",
-    "kind": "none"
+    "kind": "command",
+    "exe": "cmd.exe",
+    "args": [ "/c", "npm", "run", "tauri", "dev" ],
+    "folder": "lesson-runner"
   }
 }
