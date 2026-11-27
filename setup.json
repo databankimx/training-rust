@@ -11,8 +11,6 @@
     "powershell7": { "install": true, "pinned": "7", "winget": "Microsoft.PowerShell" },
     "rust": {
       "install": true,
-      "pinned": "1.85",
-      "orNewer": true,
       "winget": "Rustlang.Rustup"
     },
     "node": { "install": true, "pinned": "24", "orNewer": true, "winget": "OpenJS.NodeJS.LTS" },
