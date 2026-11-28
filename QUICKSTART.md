@@ -9,28 +9,113 @@ Commands are for **Windows PowerShell**, and assume you're in the repository roo
 
 ## Quick setup with the script
 
-`setup.ps1` installs what's missing, clones the repository if you don't have it yet, and then checks or does steps 1 to 7 below, in order. It's safe to run more than once: anything already in place is skipped.
+### What gets installed
 
-Open **PowerShell as Administrator**, go to the folder where you saved `setup.ps1`, and run:
+By default, the setup installs:
+
+* Git
+* PowerShell 7
+* Rust (rustup)
+* Node.js 24 or newer
+* Microsoft C++ Build Tools
+* Microsoft Visual C++ runtime
+* VS Code, with the extensions rust-lang.rust-analyzer
+* Notepad++
+
+The setup then runs these steps: Runner packages; Browser library: marked; Browser library: viz; Runner crates (cargo fetch). At the end it opens the repository in VS Code and starts a background command.
+
+### Getting started
+
+There are three methods available to set up this tutorial. They are currently Windows-only.
+
+#### Full Automation (if you don't have Git currently set up)
+
+This process will install Git and copy the repository to a subfolder of `C:\Development\training` and install all necessary software and extensions for the tutorial's lesson runner.
+
+1. Obtain the tutorial's GitHub slug name, which is `training-rust`
+2. Open PowerShell using "Run as Administrator"
+3. Run the script below
 
 ```pwsh
-powershell -ExecutionPolicy Bypass -File .\setup.ps1
+# Obtain the load tutorial script
+irm https://raw.githubusercontent.com/databankimx/training-shared-template/main/load-tutorial.ps1 -OutFile "$env:TEMP\load-tutorial.ps1"
+
+# Perform automated setup
+powershell -NoProfile -ExecutionPolicy Bypass -File "$env:TEMP\load-tutorial.ps1" -RepoUrl https://github.com/databankimx/training-rust.git
 ```
 
-The `-ExecutionPolicy Bypass` part lets this one script run. It doesn't change any setting on your machine.
+#### Automated Setup from Local Repo (assumes you already have Git installed and set up)
 
-By default, the script:
+In this process, you pull the existing repository and then run its setup script, which installs all necessary software and extensions for the tutorial's lesson runner.
 
-- installs **Rust** (rustup and the stable toolchain), **Node.js LTS**, **Git**, and **VS Code** (with the rust-analyzer extension), if they're missing
-- installs the **C++ build tools** silently, if Visual Studio with the C++ workload isn't already installed. This is a large download, and it can take several minutes
-- clones the repository into `C:\Development\training\training-rust`, if the script isn't already inside it, and continues from the clone
-- installs the runner's packages, copies the browser libraries into place, and downloads the runner's Rust crates
+1. Obtain the tutorial's GitHub slug name, which is `training-rust`
+2. Open PowerShell using "Run as Administrator"
+3. If you will use the default base directory `C:\Development\training`, run the following:
 
-The elevated window is needed for the C++ build tools, which install machine-wide. To check only, without installing anything, run `powershell -ExecutionPolicy Bypass -File .\setup.ps1 -InstallMissing:$false`. The script then stops and shows the winget commands to run. Company policy can block winget, in which case the script says so and you'll need IT.
+```pwsh
+# Create the base folder if it doesn't exist yet
+New-Item -ItemType Directory -Force -Path C:\Development\training | Out-Null
+```
 
-When the script finishes, every line in the summary should say `ok`. Then start the runner yourself (step 7), so you can see its first build.
+4. Clone the repository. If you're using a different base directory, replace `C:\Development\training` with your path:
 
----
+```pwsh
+# Go there and clone the tutorial
+cd C:\Development\training
+git clone https://github.com/databankimx/training-rust.git
+cd training-rust
+```
+
+5. If desired, edit the setup configuration, which determines what software is installed automatically (see "Change what gets installed" below)
+
+```pwsh
+# Optional: edit setup.json before installations
+notepad setup.json
+```
+
+6. Save the configuration if you edited it, then run the setup script
+
+##### If using the default base path, run this:
+
+```pwsh
+# Run the setup
+powershell -NoProfile -ExecutionPolicy Bypass -File .\setup.ps1
+```
+
+##### If using a different base path, replace `<BASE_DIR>` with your path and run this:
+
+```pwsh
+# Run the setup
+powershell -NoProfile -ExecutionPolicy Bypass -File .\setup.ps1 -BaseDirectory <BASE_DIR>
+```
+
+#### Manual Setup from Local Repo
+
+If you want to do everything manually, you can pull the repository and set up software on your own.
+
+1. Obtain the tutorial's GitHub slug name, which is `training-rust`
+2. Run the script below
+
+```pwsh
+git clone https://github.com/databankimx/training-rust.git
+```
+
+3. Review README.md and QUICKSTART.md in the repository for instructions for manual setup.
+
+### Switches and notes
+
+* `-SkipInstall` checks what's installed and installs nothing.
+* `-NoLaunch` runs the setup but doesn't open VS Code or start the runner.
+* Installing uses winget. If winget isn't available, install **App Installer** from the Microsoft Store first. Company policy can block installs, in which case the script stops and you'll need IT.
+* If an install needs administrator rights, the script stops before installing anything and asks you to run it again from an Administrator PowerShell window.
+
+### Change what gets installed
+
+The settings are in `setup.json`, in the repository folder. Open it in any text editor:
+
+* Set an install's `"install"` to `true` to include it, or `false` to skip it.
+* `"pinned"` sets the version. `"extensions"` lists the VS Code extensions to add.
+* Save the file, then run `setup.ps1` again. It skips what's already installed.
 
 ## 1. Install the tools
 
